@@ -1,13 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:whatsapp_clone/screens/login/verify_number_screen.dart';
+import 'package:whatsapp_clone/controllers/authController.dart';
 import 'package:whatsapp_clone/utils/colors.dart';
 
-// Widget loginDialog(){
-//   return
-// }
-
 loginDialog(BuildContext context, contrycode, number) {
+  var authcontroller = Get.find<AuthController>();
   return showDialog(
       context: context,
       builder: (BuildContext context) => AlertDialog(
@@ -42,15 +39,16 @@ loginDialog(BuildContext context, contrycode, number) {
                   )),
               TextButton(
                   onPressed: () {
-                    Navigator.pushAndRemoveUntil(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) =>
-                                VerifyNumberScreen(phone: number)),
-                        (route) => false);
+                    try {
+                      Navigator.pop(context);
+                      authcontroller.verifyPhoneNumber(
+                          '+${contrycode}', number, context);
+                    } catch (e) {
+                      print(e);
+                    }
                   },
                   child: Text(
-                    "Ok",
+                    "OK",
                     style: TextStyle(color: tealGreenColor),
                   ))
             ],

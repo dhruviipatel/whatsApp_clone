@@ -49,5 +49,15 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>CFBundleURLTypes</key>
+<array>
+    <dict>
+        <key>CFBundleURLSchemes</key>
+        <array>
+            <!-- Replace 'app-1-44088686447-ios-71b923864dd6275c7bda9a' with your custom URL scheme -->
+            <string>app-1-44088686447-ios-71b923864dd6275c7bda9a</string>
+        </array>
+    </dict>
+</array>
 </dict>
 </plist>

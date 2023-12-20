@@ -1,23 +1,30 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:whatsapp_clone/screens/landing_screen1.dart';
+import 'package:get/get.dart';
+import 'package:whatsapp_clone/controllers/authController.dart';
 
 class SplashScreen extends StatelessWidget {
   const SplashScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final AuthController ac = Get.put(AuthController());
     Timer(const Duration(seconds: 2), () {
-      Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (context) => const LandingScreen1()),
-          (route) => false);
+      ac.checkUserLoginStatus();
     });
-    return SafeArea(
-        child: Scaffold(
-      body: Center(
-        child: Image.asset("assets/images/whatsapp.png"),
-      ),
-    ));
+    return Obx(
+      () => ac.hasInternet == false
+          ? Scaffold(
+              body: Center(
+                child: Text("No Internet Found"),
+              ),
+            )
+          : Scaffold(
+              body: Center(
+                child: Image.asset("assets/images/whatsapp.png"),
+              ),
+            ),
+    );
   }
 }

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:whatsapp_clone/screens/home/home_screen.dart';
 import 'package:whatsapp_clone/screens/splash_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:whatsapp_clone/utils/themes.dart';
 import 'firebase_options.dart';
 
 void main() async {
@@ -22,11 +22,10 @@ class MyApp extends StatelessWidget {
       child: GetMaterialApp(
         title: 'WhatsApp Clone',
         debugShowCheckedModeBanner: false,
-        theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-          useMaterial3: true,
-        ),
-        home: HomeScreen(),
+        theme: lightTheme(),
+        darkTheme: darkTheme(),
+        themeMode: ThemeMode.light,
+        home: SplashScreen(),
       ),
     );
   }
@@ -51,3 +50,5 @@ class DismissKeyboard extends StatelessWidget {
     );
   }
 }
+
+//continue create new user in auth controller 

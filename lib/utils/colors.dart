@@ -17,3 +17,16 @@ const searchBarColor = Color.fromRGBO(50, 55, 57, 1);
 const dividerColor = Color.fromRGBO(37, 45, 50, 1);
 const chatBarMessage = Color.fromRGBO(30, 36, 40, 1);
 const mobileChatBoxColor = Color.fromRGBO(31, 44, 52, 1);
+
+///for theme
+const Color greenDark = Color(0xff00A884);
+const Color greenLight = Color(0xff008069);
+
+const Color blueDark = Color(0xff53bdeb);
+const Color blueLight = Color(0xff027eb5);
+
+const Color greyDark = Color(0xff8696a0);
+const Color greyLight = Color(0xff667781);
+
+const Color bgDark = Color(0xff111b21);
+const Color bgLight = Color(0xffffffff);

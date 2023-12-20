@@ -1,54 +1,96 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:whatsapp_clone/controllers/authController.dart';
 import 'package:whatsapp_clone/screens/chat/chat_screen.dart';
+import 'package:whatsapp_clone/screens/profile/profile_screen.dart';
 import 'package:whatsapp_clone/utils/colors.dart';
 
-Widget home_appbar() {
-  return SliverAppBar(
-    backgroundColor: tealDarkGreenColor,
-    flexibleSpace: Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          "WhatsApp",
-          style: TextStyle(color: Colors.white, fontSize: 20),
-        ),
-        Row(
+import '../login/login_screen.dart';
+
+Widget home_appbar(context) {
+  final ac = Get.find<AuthController>();
+  return SliverPersistentHeader(
+    delegate: SliverAppBarDelegate1(Container(
+      child: Container(
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            IconButton(
-                onPressed: () {},
-                icon: Icon(
-                  Icons.search,
-                  color: Colors.white,
-                )),
-            IconButton(
-                onPressed: () {},
-                icon: Icon(
-                  Icons.more_vert_outlined,
-                  color: Colors.white,
-                ))
+            Padding(
+              padding: const EdgeInsets.only(left: 15),
+              child: Text(
+                "WhatsApp",
+                style: TextStyle(color: Colors.white, fontSize: 20),
+              ),
+            ),
+            Row(
+              children: [
+                IconButton(
+                    onPressed: () {},
+                    icon: Icon(
+                      Icons.search,
+                      color: Colors.white,
+                    )),
+                Padding(
+                  padding: const EdgeInsets.only(right: 10, left: 10),
+                  child: PopupMenuButton(
+                      itemBuilder: (BuildContext context) =>
+                          <PopupMenuEntry<String>>[
+                            PopupMenuItem<String>(
+                              onTap: () {
+                                Get.to(() => ProfileScreen());
+                              },
+                              value: 'Profile',
+                              child: Text('Profile'),
+                            ),
+                            PopupMenuItem<String>(
+                              onTap: () => {},
+                              value: 'Setting',
+                              child: Text('Setting'),
+                            ),
+                            PopupMenuItem<String>(
+                              onTap: () async {
+                                await ac.logout(context);
+                                Get.to(() => LoginScreen());
+                                // Navigator.push(
+                                //     context,
+                                //     MaterialPageRoute(
+                                //         builder: (context) => LoginScreen()));
+                              },
+                              value: 'Logout',
+                              child: Text('Logout'),
+                            ),
+                          ],
+                      child: Icon(
+                        Icons.more_vert_outlined,
+                        color: Colors.white,
+                      )),
+                ),
+              ],
+            )
           ],
-        )
-      ],
-    ),
+        ),
+      ),
+    )),
+    pinned: true,
+    floating: true,
   );
 }
 
-Widget home_listTile(contact) {
-  String message = contact['message'];
-  String mymessage = '';
-  if (message.length > 50) {
-    mymessage = message.substring(0, 50) + '...';
-  } else {
-    mymessage = message;
-  }
+Widget home_listTile(user) {
+  // String message = contact['message'];
+  // String mymessage = '';
+  // if (message.length > 40) {
+  //   mymessage = message.substring(0, 40) + '...';
+  // } else {
+  //   mymessage = message;
+  // }
   return Padding(
     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 15),
     child: Container(
       child: Row(
         children: [
           CircleAvatar(
-            backgroundImage: NetworkImage(contact['profilePic']),
+            backgroundImage: NetworkImage(user.image),
             radius: 22,
           ),
           SizedBox(width: 15),
@@ -56,8 +98,8 @@ Widget home_listTile(contact) {
               child: InkWell(
             onTap: () {
               Get.to(() => ChatScreen(
-                    contactname: contact['name'],
-                    profilepic: contact['profilePic'],
+                    contactname: user.name,
+                    profilepic: user.image,
                   ));
             },
             child: Column(
@@ -66,12 +108,12 @@ Widget home_listTile(contact) {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      "${contact['name']}",
+                      "${user.name}",
                       style:
                           TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
                     ),
                     Text(
-                      '${contact['time']}',
+                      '12:00 AM',
                       style: TextStyle(
                           fontWeight: FontWeight.w400,
                           fontSize: 11,
@@ -83,7 +125,7 @@ Widget home_listTile(contact) {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      mymessage,
+                      user.about,
                       style: TextStyle(fontSize: 13),
                     ),
                     Container(
@@ -189,4 +231,63 @@ Widget call_listTile() {
       ),
     ),
   );
+}
+
+class SliverAppBarDelegate1 extends SliverPersistentHeaderDelegate {
+  SliverAppBarDelegate1(this._container);
+
+  final Container _container;
+
+  @override
+  double get minExtent => 50;
+  @override
+  double get maxExtent => 50;
+
+  @override
+  Widget build(
+    BuildContext context,
+    double shrinkOffset,
+    bool overlapsContent,
+  ) {
+    return Container(
+      height: 50,
+      color: tealDarkGreenColor,
+      child: _container,
+    );
+  }
+
+  @override
+  bool shouldRebuild(covariant SliverPersistentHeaderDelegate oldDelegate) {
+    return false;
+  }
+}
+
+class SliverAppBarDelegate extends SliverPersistentHeaderDelegate {
+  SliverAppBarDelegate(this._tabBar);
+
+  final TabBar _tabBar;
+
+  @override
+  double get minExtent => 50;
+
+  @override
+  double get maxExtent => 50;
+
+  @override
+  Widget build(
+    BuildContext context,
+    double shrinkOffset,
+    bool overlapsContent,
+  ) {
+    return Container(
+      height: 50,
+      color: tealDarkGreenColor,
+      child: _tabBar,
+    );
+  }
+
+  @override
+  bool shouldRebuild(SliverAppBarDelegate oldDelegate) {
+    return false;
+  }
 }

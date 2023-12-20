@@ -1,9 +1,7 @@
 import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:whatsapp_clone/controllers/authController.dart';
-import 'package:whatsapp_clone/screens/login/initializing_screen.dart';
 import 'package:whatsapp_clone/utils/colors.dart';
 
 class ProfileInfoScreen extends StatelessWidget {
@@ -13,12 +11,13 @@ class ProfileInfoScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final ac = Get.find<AuthController>();
     var nameController = TextEditingController();
+    var size = MediaQuery.of(context).size;
 
     return Obx(
-      () => SafeArea(
-          child: Scaffold(
+      () => Scaffold(
         body: Padding(
-          padding: const EdgeInsets.all(25.0),
+          padding:
+              EdgeInsets.symmetric(horizontal: 25, vertical: size.width * 0.22),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
@@ -33,7 +32,10 @@ class ProfileInfoScreen extends StatelessWidget {
                 ),
               ),
               SizedBox(height: 20),
-              Text("Please provide your name and an optional profile photo"),
+              Text(
+                "Please provide your name and an optional profile photo",
+                textAlign: TextAlign.center,
+              ),
               SizedBox(height: 30),
               InkWell(
                 onTap: () async {
@@ -47,7 +49,7 @@ class ProfileInfoScreen extends StatelessWidget {
                       )
                     : CircleAvatar(
                         backgroundImage:
-                            AssetImage("assets/images/blank_profile.jpg"),
+                            AssetImage("assets/images/emptyUser.jpg"),
                         radius: 50,
                       ),
               ),
@@ -93,10 +95,17 @@ class ProfileInfoScreen extends StatelessWidget {
                           borderRadius: BorderRadius.circular(2))),
                   onPressed: () {
                     if (nameController.text.length > 0) {
-                      Navigator.of(context).pushAndRemoveUntil(
-                          MaterialPageRoute(
-                              builder: (context) => InitializingScreen()),
-                          (route) => false);
+                      if (ac.profileimagepath.value == '') {
+                        ac.createNewUser(nameController.text);
+                      } else {
+                        ac.createNewUser(nameController.text,
+                            file: File(ac.profileimagepath.value));
+                      }
+
+                      // Navigator.of(context).pushReplacement(
+                      //   MaterialPageRoute(
+                      //       builder: (context) => InitializingScreen()),
+                      // );
                     } else {
                       ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(content: Text("Please Enter Username")));
@@ -109,7 +118,7 @@ class ProfileInfoScreen extends StatelessWidget {
             ],
           ),
         ),
-      )),
+      ),
     );
   }
 }

@@ -1,21 +1,50 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:whatsapp_clone/controllers/authController.dart';
+import 'package:whatsapp_clone/models/chatuserModel.dart';
 import 'package:whatsapp_clone/screens/home/home_widgets.dart';
 import 'package:whatsapp_clone/utils/colors.dart';
-import 'package:whatsapp_clone/utils/info.dart';
 
 Widget chatTab() {
-  return CustomScrollView(
-    slivers: [
-      SliverList(
-        delegate: SliverChildBuilderDelegate(
-          (BuildContext context, int index) {
-            return home_listTile(contactInfo[index]);
-          },
-          childCount: contactInfo.length,
-        ),
-      ),
-    ],
-  );
+  final ac = Get.find<AuthController>();
+  return StreamBuilder(
+      stream: ac.firestore.collection('users').snapshots(),
+      builder: (context, snapshot) {
+        switch (snapshot.connectionState) {
+          //if data is loading
+          case ConnectionState.waiting:
+          case ConnectionState.none:
+            return const Center(
+              child: CircularProgressIndicator(),
+            );
+          //if data is loaded and show it
+          case ConnectionState.active:
+          case ConnectionState.done:
+        }
+        List<Chatuser> list = [];
+
+        var data = snapshot.data?.docs;
+        list = data?.map((e) => Chatuser.fromJson(e.data())).toList() ?? [];
+
+        if (list.isNotEmpty) {
+          return CustomScrollView(
+            slivers: [
+              SliverList(
+                delegate: SliverChildBuilderDelegate(
+                  (BuildContext context, int index) {
+                    return home_listTile(list[index]);
+                  },
+                  childCount: list.length,
+                ),
+              ),
+            ],
+          );
+        } else {
+          return Center(
+            child: Text("No contact to chat"),
+          );
+        }
+      });
 }
 
 Widget statusTab() {
