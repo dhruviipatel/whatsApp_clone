@@ -8,7 +8,10 @@ import 'package:whatsapp_clone/utils/colors.dart';
 Widget chatTab() {
   final ac = Get.find<AuthController>();
   return StreamBuilder(
-      stream: ac.firestore.collection('users').snapshots(),
+      stream: ac.firestore
+          .collection('users')
+          .where('id', isNotEqualTo: ac.loginuser.value?.id)
+          .snapshots(),
       builder: (context, snapshot) {
         switch (snapshot.connectionState) {
           //if data is loading
@@ -20,34 +23,35 @@ Widget chatTab() {
           //if data is loaded and show it
           case ConnectionState.active:
           case ConnectionState.done:
-        }
-        List<Chatuser> list = [];
+            List<Chatuser> list = [];
 
-        var data = snapshot.data?.docs;
-        list = data?.map((e) => Chatuser.fromJson(e.data())).toList() ?? [];
+            var data = snapshot.data?.docs;
+            list = data?.map((e) => Chatuser.fromJson(e.data())).toList() ?? [];
 
-        if (list.isNotEmpty) {
-          return CustomScrollView(
-            slivers: [
-              SliverList(
-                delegate: SliverChildBuilderDelegate(
-                  (BuildContext context, int index) {
-                    return home_listTile(list[index]);
-                  },
-                  childCount: list.length,
-                ),
-              ),
-            ],
-          );
-        } else {
-          return Center(
-            child: Text("No contact to chat"),
-          );
+            if (list.isNotEmpty) {
+              return CustomScrollView(
+                slivers: [
+                  SliverList(
+                    delegate: SliverChildBuilderDelegate(
+                      (BuildContext context, int index) {
+                        return home_listTile(list[index]);
+                      },
+                      childCount: list.length,
+                    ),
+                  ),
+                ],
+              );
+            } else {
+              return Center(
+                child: Text("No contact to chat"),
+              );
+            }
         }
       });
 }
 
 Widget statusTab() {
+  final ac = Get.find<AuthController>();
   return CustomScrollView(
     slivers: [
       SliverToBoxAdapter(
@@ -63,7 +67,8 @@ Widget statusTab() {
                         padding: const EdgeInsets.all(8.0),
                         child: CircleAvatar(
                           radius: 22,
-                          backgroundImage: AssetImage('assets/images/user.jpg'),
+                          backgroundImage:
+                              NetworkImage(ac.loginuser.value?.image ?? ''),
                         ),
                       ),
                     ),

@@ -50,5 +50,3 @@ class DismissKeyboard extends StatelessWidget {
     );
   }
 }
-
-//continue create new user in auth controller 

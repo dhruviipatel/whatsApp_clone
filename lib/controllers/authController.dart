@@ -29,6 +29,9 @@ class AuthController extends GetxController {
   FirebaseFirestore firestore = FirebaseFirestore.instance;
 
   FirebaseStorage firebaseStorage = FirebaseStorage.instance;
+
+  Rx<Chatuser?> loginuser = Rx<Chatuser?>(null);
+
   RxString selectedCountry = 'India'.obs;
   RxString username = ''.obs;
   List countryList = [];
@@ -38,6 +41,7 @@ class AuthController extends GetxController {
   RxString selectedPhonecode = '91'.obs;
   RxString profileimagepath = ''.obs;
   RxBool hasInternet = true.obs;
+  RxBool isSearching = false.obs;
 
   //check if user login or not
   void checkUserLoginStatus() async {
@@ -47,6 +51,7 @@ class AuthController extends GetxController {
       if (user != null) {
         // User is already logged in
         hasInternet.value = true;
+        getDataFromFireStore();
         Get.offAll(() => HomeScreen());
       } else {
         // User is not logged in
@@ -94,7 +99,6 @@ class AuthController extends GetxController {
         for (var code in phoneCodeList) {
           if (c.countryCode == code.countryCode) {
             selectedPhonecode.value = code.phoneCode;
-            print(selectedPhonecode);
           }
         }
       }
@@ -160,7 +164,8 @@ class AuthController extends GetxController {
       isLoading.value = false;
       checkUserExist().then((value) {
         if (value == true) {
-          Get.offAll(() => HomeScreen());
+          getDataFromFireStore()
+              .then((value) => Get.offAll(() => HomeScreen()));
         } else {
           Get.offAll(() => ProfileInfoScreen());
         }
@@ -171,6 +176,31 @@ class AuthController extends GetxController {
           .showSnackBar(SnackBar(content: Text("Invalid OTP")));
       print(e.toString());
     }
+  }
+
+  //get login user's data from firebase firestore
+  Future getDataFromFireStore() async {
+    await firestore
+        .collection("users")
+        .doc(auth.currentUser!.phoneNumber.toString())
+        .get()
+        .then(
+      (DocumentSnapshot snapshot) {
+        loginuser.value = Chatuser(
+          isOnline: snapshot["is_online"],
+          id: snapshot["id"],
+          createdAt: snapshot["created_at"],
+          pushToken: snapshot["push_token"],
+          image: snapshot["image"],
+          phone: snapshot["phone"],
+          about: snapshot["about"],
+          lastActive: snapshot["last_active"],
+          name: snapshot["name"],
+        );
+
+        print(loginuser);
+      },
+    );
   }
 
   //check user already exist or not
@@ -242,15 +272,27 @@ class AuthController extends GetxController {
             about: 'Hey there,I am using WhatsApp ',
             lastActive: time.toString(),
             name: name);
+        loginuser.value = chatuser;
 
         firestore
             .collection('users')
             .doc(auth.currentUser!.phoneNumber.toString())
             .set(chatuser.toJson())
             .then((value) => Get.offAll(HomeScreen()));
+        profileimagepath.value = '';
       });
     } catch (e) {
       print(e.toString());
     }
+  }
+
+  updateUserData(name, about, image) {
+    print(image);
+    firestore
+        .collection('users')
+        .doc(auth.currentUser!.phoneNumber.toString())
+        .update({'name': name, 'image': image, 'about': about});
+    getDataFromFireStore();
+    print("update successfull");
   }
 }

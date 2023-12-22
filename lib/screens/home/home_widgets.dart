@@ -51,10 +51,6 @@ Widget home_appbar(context) {
                               onTap: () async {
                                 await ac.logout(context);
                                 Get.to(() => LoginScreen());
-                                // Navigator.push(
-                                //     context,
-                                //     MaterialPageRoute(
-                                //         builder: (context) => LoginScreen()));
                               },
                               value: 'Logout',
                               child: Text('Logout'),
@@ -98,8 +94,7 @@ Widget home_listTile(user) {
               child: InkWell(
             onTap: () {
               Get.to(() => ChatScreen(
-                    contactname: user.name,
-                    profilepic: user.image,
+                    mychatuser: user,
                   ));
             },
             child: Column(

@@ -1,16 +1,21 @@
 import 'package:flutter/material.dart';
-import 'package:whatsapp_clone/screens/chat/chat_card.dart';
+import 'package:get/get.dart';
+import 'package:whatsapp_clone/controllers/homeController.dart';
+import 'package:whatsapp_clone/models/chatuserModel.dart';
+import 'package:whatsapp_clone/models/messageModel.dart';
+import 'package:whatsapp_clone/screens/chat/chat_widgets.dart';
 import 'package:whatsapp_clone/utils/colors.dart';
-import 'package:whatsapp_clone/utils/info.dart';
 
 class ChatScreen extends StatelessWidget {
-  final String contactname;
-  final String profilepic;
-  const ChatScreen(
-      {super.key, required this.contactname, required this.profilepic});
+  final Chatuser mychatuser;
+
+  const ChatScreen({super.key, required this.mychatuser});
 
   @override
   Widget build(BuildContext context) {
+    final homeController = Get.find<HomeController>();
+
+    TextEditingController messageController = TextEditingController();
     return Scaffold(
       appBar: AppBar(
         titleSpacing: -20,
@@ -24,11 +29,12 @@ class ChatScreen extends StatelessWidget {
               decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(35),
                   image: DecorationImage(
-                      image: NetworkImage(profilepic), fit: BoxFit.cover)),
+                      image: NetworkImage(mychatuser.image),
+                      fit: BoxFit.cover)),
             ),
             SizedBox(width: 10),
             Text(
-              contactname,
+              mychatuser.name,
               style: TextStyle(color: Colors.white, fontSize: 18),
             ),
           ],
@@ -49,19 +55,37 @@ class ChatScreen extends StatelessWidget {
         child: Column(
           children: [
             Expanded(
-                child: ListView.builder(
-                    itemCount: messages.length,
-                    itemBuilder: (context, index) {
-                      return messages[index]['isMe'] == true
-                          ? chatcard(
-                              message: messages[index]['text'].toString(),
-                              time: messages[index]['time'].toString(),
-                              ismychat: true)
-                          : chatcard(
-                              message: messages[index]['text'].toString(),
-                              time: messages[index]['time'].toString(),
-                              ismychat: false);
-                    }))
+                child: StreamBuilder(
+                    stream: homeController.getAllMessages(mychatuser),
+                    builder: (context, snapshot) {
+                      switch (snapshot.connectionState) {
+                        case ConnectionState.waiting:
+                        case ConnectionState.none:
+                          return const SizedBox();
+                        case ConnectionState.active:
+                        case ConnectionState.done:
+                          List<Message> msglist = [];
+                          var data = snapshot.data?.docs;
+
+                          msglist = data
+                                  ?.map((e) => Message.fromJson(e.data()))
+                                  .toList() ??
+                              [];
+
+                          if (msglist.isNotEmpty) {
+                            return ListView.builder(
+                                itemCount: msglist.length,
+                                itemBuilder: (context, index) {
+                                  return chatcard(msglist[index], context);
+                                });
+                          } else {
+                            return Center(
+                              child: Text("Let's Chat"),
+                            );
+                          }
+                      }
+                    })),
+            chatInput(messageController, mychatuser)
           ],
         ),
       ),
