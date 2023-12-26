@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:whatsapp_clone/controllers/authController.dart';
 import 'package:whatsapp_clone/screens/home/home_widgets.dart';
 import 'package:whatsapp_clone/screens/home/tabs.dart';
 import 'package:whatsapp_clone/utils/colors.dart';

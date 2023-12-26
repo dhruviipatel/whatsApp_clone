@@ -639,6 +639,8 @@ PODS:
     - firebase_core
     - Flutter
     - nanopb (< 2.30910.0, >= 2.30908.0)
+  - emoji_picker_flutter (0.0.1):
+    - Flutter
   - Firebase/Auth (10.18.0):
     - Firebase/CoreOnly
     - FirebaseAuth (~> 10.18.0)
@@ -821,11 +823,15 @@ PODS:
   - SDWebImageWebPCoder (0.14.2):
     - libwebp (~> 1.0)
     - SDWebImage/Core (~> 5.17)
+  - shared_preferences_foundation (0.0.1):
+    - Flutter
+    - FlutterMacOS
   - smart_auth (0.0.1):
     - Flutter
 
 DEPENDENCIES:
   - cloud_firestore (from `.symlinks/plugins/cloud_firestore/ios`)
+  - emoji_picker_flutter (from `.symlinks/plugins/emoji_picker_flutter/ios`)
   - firebase_auth (from `.symlinks/plugins/firebase_auth/ios`)
   - firebase_core (from `.symlinks/plugins/firebase_core/ios`)
   - firebase_storage (from `.symlinks/plugins/firebase_storage/ios`)
@@ -833,6 +839,7 @@ DEPENDENCIES:
   - flutter_image_compress_common (from `.symlinks/plugins/flutter_image_compress_common/ios`)
   - image_picker_ios (from `.symlinks/plugins/image_picker_ios/ios`)
   - path_provider_foundation (from `.symlinks/plugins/path_provider_foundation/darwin`)
+  - shared_preferences_foundation (from `.symlinks/plugins/shared_preferences_foundation/darwin`)
   - smart_auth (from `.symlinks/plugins/smart_auth/ios`)
 
 SPEC REPOS:
@@ -866,6 +873,8 @@ SPEC REPOS:
 EXTERNAL SOURCES:
   cloud_firestore:
     :path: ".symlinks/plugins/cloud_firestore/ios"
+  emoji_picker_flutter:
+    :path: ".symlinks/plugins/emoji_picker_flutter/ios"
   firebase_auth:
     :path: ".symlinks/plugins/firebase_auth/ios"
   firebase_core:
@@ -880,6 +889,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/image_picker_ios/ios"
   path_provider_foundation:
     :path: ".symlinks/plugins/path_provider_foundation/darwin"
+  shared_preferences_foundation:
+    :path: ".symlinks/plugins/shared_preferences_foundation/darwin"
   smart_auth:
     :path: ".symlinks/plugins/smart_auth/ios"
 
@@ -887,6 +898,7 @@ SPEC CHECKSUMS:
   abseil: 926fb7a82dc6d2b8e1f2ed7f3a718bce691d1e46
   BoringSSL-GRPC: 3175b25143e648463a56daeaaa499c6cb86dad33
   cloud_firestore: c29d4c2e96fe31374d9dab458a99d7a488d3a735
+  emoji_picker_flutter: fe2e6151c5b548e975d546e6eeb567daf0962a58
   Firebase: 414ad272f8d02dfbf12662a9d43f4bba9bec2a06
   firebase_auth: df44e14f8a93e8a9869d91695bd3f8e53d2c9f5a
   firebase_core: 0af4a2b24f62071f9bf283691c0ee41556dcb3f5
@@ -917,6 +929,7 @@ SPEC CHECKSUMS:
   RecaptchaInterop: 7d1a4a01a6b2cb1610a47ef3f85f0c411434cb21
   SDWebImage: f9258c58221ed854cfa0e2b80ee4033710b1c6d3
   SDWebImageWebPCoder: 633b813fca24f1de5e076bcd7f720c038b23892b
+  shared_preferences_foundation: 5b919d13b803cadd15ed2dc053125c68730e5126
   smart_auth: 4bedbc118723912d0e45a07e8ab34039c19e04f2
 
 PODFILE CHECKSUM: 70d9d25280d0dd177a5f637cdb0f0b0b12c6a189

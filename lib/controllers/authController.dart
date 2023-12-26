@@ -106,7 +106,7 @@ class AuthController extends GetxController {
   }
 
   //choose image for profile
-  chooseProfilePicture() async {
+  chooseImage() async {
     var myImage = await ImagePicker().pickImage(source: ImageSource.gallery);
 
     if (myImage == null) {

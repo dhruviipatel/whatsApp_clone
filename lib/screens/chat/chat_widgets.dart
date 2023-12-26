@@ -1,16 +1,23 @@
+import 'dart:io';
+
+import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:whatsapp_clone/controllers/authController.dart';
 import 'package:whatsapp_clone/controllers/homeController.dart';
+import 'package:whatsapp_clone/models/messageModel.dart';
 import 'package:whatsapp_clone/utils/colors.dart';
 
 Widget chatcard(message, context) {
   final homeController = Get.find<HomeController>();
   final ac = Get.find<AuthController>();
-  if (message.read.isNotEmpty) {
-    homeController.updateMessageRealStatus(message);
-    print("message read updated");
+  if (ac.loginuser.value!.id != message.fromId) {
+    if (message.read.isEmpty) {
+      homeController.updateMessageReadStatus(message);
+      print("message read updated");
+    }
   }
+
   return Align(
     alignment: ac.loginuser.value!.id == message.fromId
         ? Alignment.centerRight
@@ -27,15 +34,27 @@ Widget chatcard(message, context) {
         child: Stack(
           children: [
             Padding(
-              padding: message.msg.length < 8
-                  ? EdgeInsets.fromLTRB(15, 5, 70, 20)
-                  : EdgeInsets.fromLTRB(15, 5, 30, 20),
-              child: Text(
-                message.msg,
-                textAlign: TextAlign.start,
-                style: TextStyle(fontSize: 16),
-              ),
-            ),
+                padding: message.type == Type.image
+                    ? EdgeInsets.fromLTRB(10, 10, 10, 30)
+                    : message.msg.length < 8
+                        ? EdgeInsets.fromLTRB(15, 5, 70, 20)
+                        : EdgeInsets.fromLTRB(15, 5, 30, 20),
+                child: message.type == Type.text
+                    ? Text(
+                        message.msg,
+                        textAlign: TextAlign.start,
+                        style: TextStyle(fontSize: 16),
+                      )
+                    : Container(
+                        height: 200,
+                        width: 200,
+                        decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(20)),
+                        child: Image.network(
+                          message.msg,
+                          fit: BoxFit.contain,
+                        ),
+                      )),
             Positioned(
                 bottom: ac.loginuser.value!.id == message.fromId ? 4 : 2,
                 right: 10,
@@ -48,17 +67,19 @@ Widget chatcard(message, context) {
                           TextStyle(color: Colors.grey.shade600, fontSize: 13),
                     ),
                     SizedBox(width: 5),
-                    message.read == ''
-                        ? Icon(
-                            Icons.done_all,
-                            size: 16,
-                            color: Colors.grey,
-                          )
-                        : Icon(
-                            Icons.done_all,
-                            size: 16,
-                            color: Colors.blue,
-                          )
+                    ac.loginuser.value!.id == message.fromId
+                        ? message.read == ''
+                            ? Icon(
+                                Icons.done_all,
+                                size: 16,
+                                color: Colors.grey,
+                              )
+                            : Icon(
+                                Icons.done_all,
+                                size: 16,
+                                color: Colors.blue,
+                              )
+                        : Container()
                   ],
                 ))
           ],
@@ -68,7 +89,7 @@ Widget chatcard(message, context) {
   );
 }
 
-Widget chatInput(controller, oppositeUser) {
+Widget chatInput(controller, oppositeUser, context) {
   final ac = Get.find<AuthController>();
   final homeController = Get.find<HomeController>();
   return Obx(
@@ -86,18 +107,28 @@ Widget chatInput(controller, oppositeUser) {
                 child: Row(
                   children: [
                     IconButton(
-                        onPressed: () {},
+                        onPressed: () {
+                          homeController.showEmoji.value =
+                              !homeController.showEmoji.value;
+                        },
                         icon: Icon(
                           Icons.emoji_emotions_outlined,
                           color: Colors.grey.shade600,
                         )),
                     Expanded(
                         child: TextFormField(
+                      onTap: () {
+                        if (homeController.showEmoji.value) {
+                          homeController.showEmoji.value =
+                              !homeController.showEmoji.value;
+                        }
+                      },
                       controller: controller,
                       cursorColor: tealDarkGreenColor,
                       keyboardType: TextInputType.multiline,
                       maxLines: null,
                       onChanged: (value) {
+                        //controller.text = value;
                         homeController.chatText.value = value;
                       },
                       decoration: InputDecoration(
@@ -118,6 +149,7 @@ Widget chatInput(controller, oppositeUser) {
                         ),
                       ),
                     ),
+                    //controller.text != ''
                     homeController.chatText.value.length > 0
                         ? Container()
                         : Padding(
@@ -138,10 +170,18 @@ Widget chatInput(controller, oppositeUser) {
                               ),
                             ),
                           ),
+                    // controller.text != ''
                     homeController.chatText.value.length > 0
                         ? Container()
                         : IconButton(
-                            onPressed: () {},
+                            onPressed: () async {
+                              // homeController.selectedChatImg.value =
+                              String selectedChatImg = await ac.chooseImage();
+                              if (selectedChatImg.isNotEmpty) {
+                                homeController.sendChatImage(
+                                    oppositeUser, File(selectedChatImg));
+                              }
+                            },
                             icon: Icon(
                               Icons.photo_camera_rounded,
                               color: Colors.grey.shade600,
@@ -155,8 +195,9 @@ Widget chatInput(controller, oppositeUser) {
                     onTap: () {
                       final chatUser = ac.loginuser.value;
                       if (chatUser != null) {
-                        homeController.sendMessage(
-                            oppositeUser, homeController.chatText.value);
+                        homeController.sendMessage(oppositeUser,
+                            homeController.chatText.value, Type.text);
+                        homeController.chatText.value = '';
                         controller.text = '';
                       }
                     },

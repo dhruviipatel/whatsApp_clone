@@ -1,4 +1,3 @@
-import 'dart:ffi';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -72,8 +71,7 @@ class ProfileScreen extends StatelessWidget {
                     InkWell(
                       onTap: () async {
                         print(imageController.text);
-                        ac.profileimagepath.value =
-                            await ac.chooseProfilePicture();
+                        ac.profileimagepath.value = await ac.chooseImage();
                         print(imageController.text);
                       },
                       child: Stack(

@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:whatsapp_clone/controllers/authController.dart';
+import 'package:whatsapp_clone/controllers/homeController.dart';
+import 'package:whatsapp_clone/models/chatuserModel.dart';
+import 'package:whatsapp_clone/models/messageModel.dart';
 import 'package:whatsapp_clone/screens/chat/chat_screen.dart';
 import 'package:whatsapp_clone/screens/profile/profile_screen.dart';
 import 'package:whatsapp_clone/utils/colors.dart';
@@ -72,7 +75,176 @@ Widget home_appbar(context) {
   );
 }
 
+class Home_listTile extends StatelessWidget {
+  final Chatuser user;
+  const Home_listTile({super.key, required this.user});
+
+  @override
+  Widget build(BuildContext context) {
+    final homeController = Get.find<HomeController>();
+    final ac = Get.find<AuthController>();
+    Message? mymessage;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 15),
+      child: StreamBuilder(
+          stream: homeController.getLastMessage(user),
+          builder: (context, snapshot) {
+            final data = snapshot.data?.docs;
+
+            final list =
+                data?.map((e) => Message.fromJson(e.data())).toList() ?? [];
+
+            if (list.isNotEmpty) {
+              mymessage = list[0];
+              homeController.message.value = list[0];
+            }
+
+            // String message = mymessage!.msg;
+            String mymessage1 = '';
+            if (mymessage != null) {
+              if (mymessage!.msg.length > 40) {
+                mymessage1 = (mymessage!.msg.substring(0, 40) + '...');
+              } else {
+                mymessage1 = mymessage!.msg;
+              }
+            }
+            return Container(
+              child: Row(
+                children: [
+                  CircleAvatar(
+                    backgroundImage: NetworkImage(user.image),
+                    radius: 22,
+                  ),
+                  SizedBox(width: 15),
+                  Expanded(
+                      child: InkWell(
+                    onTap: () {
+                      Get.to(() => ChatScreen(
+                            mychatuser: user,
+                          ));
+                    },
+                    child: Column(
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              "${user.name}",
+                              style: TextStyle(
+                                  fontWeight: FontWeight.w700, fontSize: 15),
+                            ),
+                            Text(
+                              mymessage != null
+                                  ? homeController.getLastMessageDate(
+                                      context: context, time: mymessage!.sent)
+                                  : '',
+                              style: TextStyle(
+                                  fontWeight: FontWeight.w400,
+                                  fontSize: 11,
+                                  color: mymessage != null &&
+                                          mymessage!.read.isEmpty &&
+                                          mymessage?.fromId !=
+                                              ac.loginuser.value?.id
+                                      ? Colors.green
+                                      : Colors.grey.shade600),
+                            )
+                          ],
+                        ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            mymessage != null && mymessage!.type == Type.image
+                                ? Row(
+                                    children: [
+                                      mymessage?.fromId ==
+                                              ac.loginuser.value?.id
+                                          ? Icon(
+                                              Icons.done_all,
+                                              size: 15,
+                                              color: mymessage != null &&
+                                                      mymessage!.read.isNotEmpty
+                                                  ? Colors.blue
+                                                  : Colors.grey.shade600,
+                                            )
+                                          : Container(),
+                                      Icon(
+                                        Icons.image,
+                                        size: 15,
+                                        color: Colors.grey.shade600,
+                                      ),
+                                      Text(
+                                        "Photo",
+                                        style: TextStyle(
+                                          color: Colors.grey.shade600,
+                                        ),
+                                      )
+                                    ],
+                                  )
+                                : Row(
+                                    children: [
+                                      mymessage?.fromId ==
+                                              ac.loginuser.value?.id
+                                          ? Icon(
+                                              Icons.done_all,
+                                              size: 15,
+                                              color: mymessage != null &&
+                                                      mymessage!
+                                                          .read.isNotEmpty &&
+                                                      mymessage?.fromId ==
+                                                          ac.loginuser.value?.id
+                                                  ? Colors.blue
+                                                  : Colors.grey.shade600,
+                                            )
+                                          : Container(),
+                                      Text(
+                                        mymessage != null
+                                            ? mymessage1
+                                            : user.about,
+                                        maxLines: 1,
+                                        style: TextStyle(
+                                          fontSize: 13,
+                                          color: Colors.grey.shade600,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                            mymessage != null &&
+                                    mymessage!.read.isEmpty &&
+                                    mymessage?.fromId != ac.loginuser.value?.id
+                                ? Container(
+                                    height: 18,
+                                    width: 18,
+                                    decoration: BoxDecoration(
+                                        color: Colors.green,
+                                        borderRadius:
+                                            BorderRadius.circular(20)),
+                                    child: Center(
+                                      child: Text(
+                                        '1',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 11,
+                                        ),
+                                      ),
+                                    ),
+                                  )
+                                : Container()
+                          ],
+                        )
+                      ],
+                    ),
+                  ))
+                ],
+              ),
+            );
+          }),
+    );
+  }
+}
+
 Widget home_listTile(user) {
+  final homeController = Get.find<HomeController>();
   // String message = contact['message'];
   // String mymessage = '';
   // if (message.length > 40) {
@@ -82,71 +254,86 @@ Widget home_listTile(user) {
   // }
   return Padding(
     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 15),
-    child: Container(
-      child: Row(
-        children: [
-          CircleAvatar(
-            backgroundImage: NetworkImage(user.image),
-            radius: 22,
-          ),
-          SizedBox(width: 15),
-          Expanded(
-              child: InkWell(
-            onTap: () {
-              Get.to(() => ChatScreen(
-                    mychatuser: user,
-                  ));
-            },
-            child: Column(
+    child: StreamBuilder(
+        stream: homeController.getLastMessage(user),
+        builder: (context, snapshot) {
+          final data = snapshot.data?.docs;
+
+          final list =
+              data?.map((e) => Message.fromJson(e.data())).toList() ?? [];
+
+          if (list.isNotEmpty) {
+            homeController.message.value = list[0];
+          }
+          return Container(
+            child: Row(
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      "${user.name}",
-                      style:
-                          TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
-                    ),
-                    Text(
-                      '12:00 AM',
-                      style: TextStyle(
-                          fontWeight: FontWeight.w400,
-                          fontSize: 11,
-                          color: Colors.green),
-                    )
-                  ],
+                CircleAvatar(
+                  backgroundImage: NetworkImage(user.image),
+                  radius: 22,
                 ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      user.about,
-                      style: TextStyle(fontSize: 13),
-                    ),
-                    Container(
-                      height: 18,
-                      width: 18,
-                      decoration: BoxDecoration(
-                          color: Colors.green,
-                          borderRadius: BorderRadius.circular(20)),
-                      child: Center(
-                        child: Text(
-                          '2',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 11,
+                SizedBox(width: 15),
+                Expanded(
+                    child: InkWell(
+                  onTap: () {
+                    Get.to(() => ChatScreen(
+                          mychatuser: user,
+                        ));
+                  },
+                  child: Column(
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            "${user.name}",
+                            style: TextStyle(
+                                fontWeight: FontWeight.w700, fontSize: 15),
                           ),
-                        ),
+                          Text(
+                            '12:00 AM',
+                            style: TextStyle(
+                                fontWeight: FontWeight.w400,
+                                fontSize: 11,
+                                color: Colors.green),
+                          )
+                        ],
                       ),
-                    )
-                  ],
-                ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            homeController.message.value != null
+                                ? homeController.message.value?.msg
+                                : user.about,
+                            maxLines: 1,
+                            style: TextStyle(fontSize: 13),
+                          ),
+                          Container(
+                            height: 18,
+                            width: 18,
+                            decoration: BoxDecoration(
+                                color: Colors.green,
+                                borderRadius: BorderRadius.circular(20)),
+                            child: Center(
+                              child: Text(
+                                '2',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 11,
+                                ),
+                              ),
+                            ),
+                          )
+                        ],
+                      ),
+                    ],
+                  ),
+                ))
               ],
             ),
-          ))
-        ],
-      ),
-    ),
+          );
+        }),
   );
 }
 

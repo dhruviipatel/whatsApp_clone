@@ -39,7 +39,7 @@ class ProfileInfoScreen extends StatelessWidget {
               SizedBox(height: 30),
               InkWell(
                 onTap: () async {
-                  ac.profileimagepath.value = await ac.chooseProfilePicture();
+                  ac.profileimagepath.value = await ac.chooseImage();
                 },
                 child: ac.profileimagepath.value != ''
                     ? CircleAvatar(

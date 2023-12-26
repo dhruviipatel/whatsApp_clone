@@ -34,7 +34,7 @@ Widget chatTab() {
                   SliverList(
                     delegate: SliverChildBuilderDelegate(
                       (BuildContext context, int index) {
-                        return home_listTile(list[index]);
+                        return Home_listTile(user: list[index]);
                       },
                       childCount: list.length,
                     ),
