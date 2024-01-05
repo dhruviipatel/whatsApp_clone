@@ -1,34 +1,24 @@
 import 'dart:io';
-
-import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:whatsapp_clone/controllers/authController.dart';
 import 'package:whatsapp_clone/controllers/homeController.dart';
+import 'package:whatsapp_clone/models/chatuserModel.dart';
+import 'package:whatsapp_clone/models/groupMessageModel.dart';
 import 'package:whatsapp_clone/models/messageModel.dart';
 import 'package:whatsapp_clone/utils/colors.dart';
 
 Widget chatcard(message, context) {
   final homeController = Get.find<HomeController>();
-  final ac = Get.find<AuthController>();
-  if (ac.loginuser.value!.id != message.fromId) {
-    if (message.read.isEmpty) {
-      homeController.updateMessageReadStatus(message);
-      print("message read updated");
-    }
-  }
+  //final ac = Get.find<AuthController>();
 
   return Align(
-    alignment: ac.loginuser.value!.id == message.fromId
-        ? Alignment.centerRight
-        : Alignment.centerLeft,
+    alignment: Alignment.centerRight,
     child: ConstrainedBox(
       constraints:
           BoxConstraints(maxWidth: MediaQuery.of(context).size.width - 45),
       child: Card(
-        color: ac.loginuser.value!.id == message.fromId
-            ? mychatcolor
-            : Colors.white,
+        color: mychatcolor,
         elevation: 1,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
         child: Stack(
@@ -46,8 +36,7 @@ Widget chatcard(message, context) {
                         style: TextStyle(fontSize: 16),
                       )
                     : Container(
-                        height: 200,
-                        width: 200,
+                        width: MediaQuery.of(context).size.width / 2,
                         decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(20)),
                         child: Image.network(
@@ -56,7 +45,7 @@ Widget chatcard(message, context) {
                         ),
                       )),
             Positioned(
-                bottom: ac.loginuser.value!.id == message.fromId ? 4 : 2,
+                bottom: 4,
                 right: 10,
                 child: Row(
                   children: [
@@ -67,19 +56,17 @@ Widget chatcard(message, context) {
                           TextStyle(color: Colors.grey.shade600, fontSize: 13),
                     ),
                     SizedBox(width: 5),
-                    ac.loginuser.value!.id == message.fromId
-                        ? message.read == ''
-                            ? Icon(
-                                Icons.done_all,
-                                size: 16,
-                                color: Colors.grey,
-                              )
-                            : Icon(
-                                Icons.done_all,
-                                size: 16,
-                                color: Colors.blue,
-                              )
-                        : Container()
+                    message.read == ''
+                        ? Icon(
+                            Icons.done_all,
+                            size: 16,
+                            color: Colors.grey,
+                          )
+                        : Icon(
+                            Icons.done_all,
+                            size: 16,
+                            color: Colors.blue,
+                          )
                   ],
                 ))
           ],
@@ -89,7 +76,268 @@ Widget chatcard(message, context) {
   );
 }
 
-Widget chatInput(controller, oppositeUser, context) {
+Widget oppChatCard(Message message, context) {
+  final homeController = Get.find<HomeController>();
+  final ac = Get.find<AuthController>();
+  if (message.read.isEmpty) {
+    homeController.updateMessageReadStatus(message);
+    print("message read updated");
+  }
+  return Row(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Padding(
+        padding: const EdgeInsets.only(top: 5, left: 2),
+        child: StreamBuilder(
+            stream: ac.firestore
+                .collection('users')
+                .where('id', isEqualTo: message.fromId)
+                .snapshots(),
+            builder: (context, snapshot) {
+              var data = snapshot.data?.docs;
+              final list =
+                  data?.map((e) => Chatuser.fromJson(e.data())).toList() ?? [];
+
+              if (list.isNotEmpty) {
+                Chatuser usr = list[0];
+
+                return Container(
+                  height: 30,
+                  width: 30,
+                  decoration: BoxDecoration(
+                    image: DecorationImage(
+                        image: NetworkImage(usr.image), fit: BoxFit.cover),
+                    borderRadius: BorderRadius.circular(30),
+                  ),
+                );
+              } else {
+                return Container(
+                  height: 30,
+                  width: 30,
+                  decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(30),
+                      color: Colors.white),
+                );
+              }
+            }),
+      ),
+      Align(
+        alignment: Alignment.centerLeft,
+        child: ConstrainedBox(
+          constraints:
+              BoxConstraints(maxWidth: MediaQuery.of(context).size.width - 45),
+          child: Card(
+            color: Colors.white,
+            elevation: 1,
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
+            child: Stack(
+              children: [
+                Padding(
+                    padding: message.type == Type.image
+                        ? EdgeInsets.fromLTRB(10, 10, 10, 30)
+                        : message.msg.length < 8
+                            ? EdgeInsets.fromLTRB(15, 5, 70, 20)
+                            : EdgeInsets.fromLTRB(15, 5, 30, 20),
+                    child: message.type == Type.text
+                        ? Text(
+                            message.msg,
+                            textAlign: TextAlign.start,
+                            style: TextStyle(fontSize: 16),
+                          )
+                        : Container(
+                            width: MediaQuery.of(context).size.width / 2,
+                            decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(20)),
+                            child: Image.network(
+                              message.msg,
+                              fit: BoxFit.contain,
+                            ),
+                          )),
+                Positioned(
+                    bottom: 2,
+                    right: 10,
+                    child: Row(
+                      children: [
+                        Text(
+                          homeController.getFormatedDate(
+                              context: context, time: message.sent),
+                          style: TextStyle(
+                              color: Colors.grey.shade600, fontSize: 13),
+                        ),
+                        SizedBox(width: 5),
+                      ],
+                    ))
+              ],
+            ),
+          ),
+        ),
+      ),
+    ],
+  );
+}
+
+Widget groupchatcard(GroupMessage message, context) {
+  final homeController = Get.find<HomeController>();
+  //final ac = Get.find<AuthController>();
+
+  return Align(
+    alignment: Alignment.centerRight,
+    child: ConstrainedBox(
+      constraints:
+          BoxConstraints(maxWidth: MediaQuery.of(context).size.width - 45),
+      child: Card(
+        color: mychatcolor,
+        elevation: 1,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
+        child: Stack(
+          children: [
+            Padding(
+                padding: message.type == MType.image
+                    ? EdgeInsets.fromLTRB(10, 10, 10, 30)
+                    : message.msg.length < 8
+                        ? EdgeInsets.fromLTRB(15, 5, 70, 20)
+                        : EdgeInsets.fromLTRB(15, 5, 30, 20),
+                child: message.type == MType.text
+                    ? Text(
+                        message.msg,
+                        textAlign: TextAlign.start,
+                        style: TextStyle(fontSize: 16),
+                      )
+                    : Container(
+                        width: MediaQuery.of(context).size.width / 2,
+                        decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(20)),
+                        child: Image.network(
+                          message.msg,
+                          fit: BoxFit.contain,
+                        ),
+                      )),
+            Positioned(
+                bottom: 4,
+                right: 10,
+                child: Row(
+                  children: [
+                    Text(
+                      homeController.getFormatedDate(
+                          context: context, time: message.sent),
+                      style:
+                          TextStyle(color: Colors.grey.shade600, fontSize: 13),
+                    ),
+                    SizedBox(width: 5),
+                    Icon(
+                      Icons.check,
+                      size: 16,
+                      color: Colors.grey,
+                    )
+                  ],
+                ))
+          ],
+        ),
+      ),
+    ),
+  );
+}
+
+Widget oppGroupchatCard(GroupMessage message, context) {
+  final homeController = Get.find<HomeController>();
+  final ac = Get.find<AuthController>();
+
+  return Row(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Padding(
+        padding: const EdgeInsets.only(top: 5, left: 2),
+        child: StreamBuilder(
+            stream: ac.firestore
+                .collection('users')
+                .where('id', isEqualTo: message.fromId)
+                .snapshots(),
+            builder: (context, snapshot) {
+              var data = snapshot.data?.docs;
+              final list =
+                  data?.map((e) => Chatuser.fromJson(e.data())).toList() ?? [];
+
+              if (list.isNotEmpty) {
+                Chatuser usr = list[0];
+
+                return Container(
+                  height: 30,
+                  width: 30,
+                  decoration: BoxDecoration(
+                    image: DecorationImage(
+                        image: NetworkImage(usr.image), fit: BoxFit.cover),
+                    borderRadius: BorderRadius.circular(30),
+                  ),
+                );
+              } else {
+                return Container(
+                  height: 30,
+                  width: 30,
+                  decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(30),
+                      color: Colors.white),
+                );
+              }
+            }),
+      ),
+      Align(
+        alignment: Alignment.centerLeft,
+        child: ConstrainedBox(
+          constraints:
+              BoxConstraints(maxWidth: MediaQuery.of(context).size.width - 45),
+          child: Card(
+            color: Colors.white,
+            elevation: 1,
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
+            child: Stack(
+              children: [
+                Padding(
+                    padding: message.type == MType.image
+                        ? EdgeInsets.fromLTRB(10, 10, 10, 30)
+                        : message.msg.length < 8
+                            ? EdgeInsets.fromLTRB(15, 5, 70, 20)
+                            : EdgeInsets.fromLTRB(15, 5, 30, 20),
+                    child: message.type == MType.text
+                        ? Text(
+                            message.msg,
+                            textAlign: TextAlign.start,
+                            style: TextStyle(fontSize: 16),
+                          )
+                        : Container(
+                            width: MediaQuery.of(context).size.width / 2,
+                            decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(20)),
+                            child: Image.network(
+                              message.msg,
+                              fit: BoxFit.contain,
+                            ),
+                          )),
+                Positioned(
+                    bottom: 2,
+                    right: 10,
+                    child: Row(
+                      children: [
+                        Text(
+                          homeController.getFormatedDate(
+                              context: context, time: message.sent),
+                          style: TextStyle(
+                              color: Colors.grey.shade600, fontSize: 13),
+                        ),
+                        SizedBox(width: 5),
+                      ],
+                    ))
+              ],
+            ),
+          ),
+        ),
+      ),
+    ],
+  );
+}
+
+Widget chatInput(controller, context, prevScreen, {oppositeUser, group}) {
   final ac = Get.find<AuthController>();
   final homeController = Get.find<HomeController>();
   return Obx(
@@ -175,11 +423,31 @@ Widget chatInput(controller, oppositeUser, context) {
                         ? Container()
                         : IconButton(
                             onPressed: () async {
-                              // homeController.selectedChatImg.value =
-                              String selectedChatImg = await ac.chooseImage();
-                              if (selectedChatImg.isNotEmpty) {
-                                homeController.sendChatImage(
-                                    oppositeUser, File(selectedChatImg));
+                              // await homeController
+                              //     .chooseImageFromCamera(oppositeUser);
+
+                              final path = await ac.chooseImageFromGallery();
+
+                              if (path != null) {
+                                if (prevScreen == 'groupchat') {
+                                  homeController.isUploading.value = true;
+                                  homeController
+                                      .sendGroupChatImage(group, File(path))
+                                      .then((imgurl) =>
+                                          homeController.sendGroupMessage(
+                                              group, imgurl, MType.image));
+                                  homeController.isUploading.value = false;
+                                } else {
+                                  homeController.isUploading.value = true;
+                                  homeController
+                                      .sendChatImage(oppositeUser, File(path))
+                                      .then((imageurl) =>
+                                          homeController.sendMessage(
+                                              oppositeUser,
+                                              imageurl,
+                                              Type.image));
+                                  homeController.isUploading.value = false;
+                                }
                               }
                             },
                             icon: Icon(
@@ -195,10 +463,21 @@ Widget chatInput(controller, oppositeUser, context) {
                     onTap: () {
                       final chatUser = ac.loginuser.value;
                       if (chatUser != null) {
-                        homeController.sendMessage(oppositeUser,
-                            homeController.chatText.value, Type.text);
-                        homeController.chatText.value = '';
-                        controller.text = '';
+                        if (prevScreen == 'groupchat') {
+                          homeController.sendGroupMessage(
+                              group, homeController.chatText.value, MType.text);
+                          homeController.chatText.value = '';
+                          controller.text = '';
+                        } else {
+                          homeController
+                              .saveFirstMessageData(oppositeUser)
+                              .then((value) {
+                            homeController.sendMessage(oppositeUser,
+                                homeController.chatText.value, Type.text);
+                            homeController.chatText.value = '';
+                            controller.text = '';
+                          });
+                        }
                       }
                     },
                     child: Container(
@@ -235,3 +514,96 @@ Widget chatInput(controller, oppositeUser, context) {
     ),
   );
 }
+
+
+
+
+
+
+
+
+
+
+
+
+/////
+///
+// Widget chatcard(message, context) {
+//   final homeController = Get.find<HomeController>();
+//   final ac = Get.find<AuthController>();
+//   if (ac.loginuser.value!.id != message.fromId) {
+//     if (message.read.isEmpty) {
+//       homeController.updateMessageReadStatus(message);
+//       print("message read updated");
+//     }
+//   }
+
+//   return Align(
+//     alignment: ac.loginuser.value!.id == message.fromId
+//         ? Alignment.centerRight
+//         : Alignment.centerLeft,
+//     child: ConstrainedBox(
+//       constraints:
+//           BoxConstraints(maxWidth: MediaQuery.of(context).size.width - 45),
+//       child: Card(
+//         color: ac.loginuser.value!.id == message.fromId
+//             ? mychatcolor
+//             : Colors.white,
+//         elevation: 1,
+//         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
+//         child: Stack(
+//           children: [
+//             Padding(
+//                 padding: message.type == Type.image
+//                     ? EdgeInsets.fromLTRB(10, 10, 10, 30)
+//                     : message.msg.length < 8
+//                         ? EdgeInsets.fromLTRB(15, 5, 70, 20)
+//                         : EdgeInsets.fromLTRB(15, 5, 30, 20),
+//                 child: message.type == Type.text
+//                     ? Text(
+//                         message.msg,
+//                         textAlign: TextAlign.start,
+//                         style: TextStyle(fontSize: 16),
+//                       )
+//                     : Container(
+//                         width: MediaQuery.of(context).size.width / 2,
+//                         decoration: BoxDecoration(
+//                             borderRadius: BorderRadius.circular(20)),
+//                         child: Image.network(
+//                           message.msg,
+//                           fit: BoxFit.contain,
+//                         ),
+//                       )),
+//             Positioned(
+//                 bottom: ac.loginuser.value!.id == message.fromId ? 4 : 2,
+//                 right: 10,
+//                 child: Row(
+//                   children: [
+//                     Text(
+//                       homeController.getFormatedDate(
+//                           context: context, time: message.sent),
+//                       style:
+//                           TextStyle(color: Colors.grey.shade600, fontSize: 13),
+//                     ),
+//                     SizedBox(width: 5),
+//                     ac.loginuser.value!.id == message.fromId
+//                         ? message.read == ''
+//                             ? Icon(
+//                                 Icons.done_all,
+//                                 size: 16,
+//                                 color: Colors.grey,
+//                               )
+//                             : Icon(
+//                                 Icons.done_all,
+//                                 size: 16,
+//                                 color: Colors.blue,
+//                               )
+//                         : Container()
+//                   ],
+//                 ))
+//           ],
+//         ),
+//       ),
+//     ),
+//   );
+// }

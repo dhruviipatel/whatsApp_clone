@@ -3,15 +3,18 @@ import 'package:get/get.dart';
 import 'package:whatsapp_clone/controllers/authController.dart';
 import 'package:whatsapp_clone/controllers/homeController.dart';
 import 'package:whatsapp_clone/models/chatuserModel.dart';
+import 'package:whatsapp_clone/models/groupModel.dart';
 import 'package:whatsapp_clone/models/messageModel.dart';
 import 'package:whatsapp_clone/screens/chat/chat_screen.dart';
+import 'package:whatsapp_clone/screens/chat/groupchat_screen.dart';
 import 'package:whatsapp_clone/screens/profile/profile_screen.dart';
+import 'package:whatsapp_clone/screens/profile/profile_widgets.dart';
 import 'package:whatsapp_clone/utils/colors.dart';
-
 import '../login/login_screen.dart';
 
 Widget home_appbar(context) {
   final ac = Get.find<AuthController>();
+  // final homeController = Get.find<HomeController>();
   return SliverPersistentHeader(
     delegate: SliverAppBarDelegate1(Container(
       child: Container(
@@ -53,7 +56,7 @@ Widget home_appbar(context) {
                             PopupMenuItem<String>(
                               onTap: () async {
                                 await ac.logout(context);
-                                Get.to(() => LoginScreen());
+                                Get.offAll(() => LoginScreen());
                               },
                               value: 'Logout',
                               child: Text('Logout'),
@@ -77,6 +80,7 @@ Widget home_appbar(context) {
 
 class Home_listTile extends StatelessWidget {
   final Chatuser user;
+
   const Home_listTile({super.key, required this.user});
 
   @override
@@ -109,168 +113,18 @@ class Home_listTile extends StatelessWidget {
                 mymessage1 = mymessage!.msg;
               }
             }
-            return Container(
-              child: Row(
-                children: [
-                  CircleAvatar(
+            return Row(
+              children: [
+                InkWell(
+                  onTap: () {
+                    showDialog(
+                        context: context,
+                        builder: (_) => ProfileDialog(chatuser: user));
+                  },
+                  child: CircleAvatar(
                     backgroundImage: NetworkImage(user.image),
                     radius: 22,
                   ),
-                  SizedBox(width: 15),
-                  Expanded(
-                      child: InkWell(
-                    onTap: () {
-                      Get.to(() => ChatScreen(
-                            mychatuser: user,
-                          ));
-                    },
-                    child: Column(
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              "${user.name}",
-                              style: TextStyle(
-                                  fontWeight: FontWeight.w700, fontSize: 15),
-                            ),
-                            Text(
-                              mymessage != null
-                                  ? homeController.getLastMessageDate(
-                                      context: context, time: mymessage!.sent)
-                                  : '',
-                              style: TextStyle(
-                                  fontWeight: FontWeight.w400,
-                                  fontSize: 11,
-                                  color: mymessage != null &&
-                                          mymessage!.read.isEmpty &&
-                                          mymessage?.fromId !=
-                                              ac.loginuser.value?.id
-                                      ? Colors.green
-                                      : Colors.grey.shade600),
-                            )
-                          ],
-                        ),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            mymessage != null && mymessage!.type == Type.image
-                                ? Row(
-                                    children: [
-                                      mymessage?.fromId ==
-                                              ac.loginuser.value?.id
-                                          ? Icon(
-                                              Icons.done_all,
-                                              size: 15,
-                                              color: mymessage != null &&
-                                                      mymessage!.read.isNotEmpty
-                                                  ? Colors.blue
-                                                  : Colors.grey.shade600,
-                                            )
-                                          : Container(),
-                                      Icon(
-                                        Icons.image,
-                                        size: 15,
-                                        color: Colors.grey.shade600,
-                                      ),
-                                      Text(
-                                        "Photo",
-                                        style: TextStyle(
-                                          color: Colors.grey.shade600,
-                                        ),
-                                      )
-                                    ],
-                                  )
-                                : Row(
-                                    children: [
-                                      mymessage?.fromId ==
-                                              ac.loginuser.value?.id
-                                          ? Icon(
-                                              Icons.done_all,
-                                              size: 15,
-                                              color: mymessage != null &&
-                                                      mymessage!
-                                                          .read.isNotEmpty &&
-                                                      mymessage?.fromId ==
-                                                          ac.loginuser.value?.id
-                                                  ? Colors.blue
-                                                  : Colors.grey.shade600,
-                                            )
-                                          : Container(),
-                                      Text(
-                                        mymessage != null
-                                            ? mymessage1
-                                            : user.about,
-                                        maxLines: 1,
-                                        style: TextStyle(
-                                          fontSize: 13,
-                                          color: Colors.grey.shade600,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                            mymessage != null &&
-                                    mymessage!.read.isEmpty &&
-                                    mymessage?.fromId != ac.loginuser.value?.id
-                                ? Container(
-                                    height: 18,
-                                    width: 18,
-                                    decoration: BoxDecoration(
-                                        color: Colors.green,
-                                        borderRadius:
-                                            BorderRadius.circular(20)),
-                                    child: Center(
-                                      child: Text(
-                                        '1',
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 11,
-                                        ),
-                                      ),
-                                    ),
-                                  )
-                                : Container()
-                          ],
-                        )
-                      ],
-                    ),
-                  ))
-                ],
-              ),
-            );
-          }),
-    );
-  }
-}
-
-Widget home_listTile(user) {
-  final homeController = Get.find<HomeController>();
-  // String message = contact['message'];
-  // String mymessage = '';
-  // if (message.length > 40) {
-  //   mymessage = message.substring(0, 40) + '...';
-  // } else {
-  //   mymessage = message;
-  // }
-  return Padding(
-    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 15),
-    child: StreamBuilder(
-        stream: homeController.getLastMessage(user),
-        builder: (context, snapshot) {
-          final data = snapshot.data?.docs;
-
-          final list =
-              data?.map((e) => Message.fromJson(e.data())).toList() ?? [];
-
-          if (list.isNotEmpty) {
-            homeController.message.value = list[0];
-          }
-          return Container(
-            child: Row(
-              children: [
-                CircleAvatar(
-                  backgroundImage: NetworkImage(user.image),
-                  radius: 22,
                 ),
                 SizedBox(width: 15),
                 Expanded(
@@ -286,55 +140,194 @@ Widget home_listTile(user) {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            "${user.name}",
+                            user.id == ac.loginuser.value?.id
+                                ? 'Me (You)'
+                                : "${user.name}",
                             style: TextStyle(
-                                fontWeight: FontWeight.w700, fontSize: 15),
+                                fontWeight: FontWeight.w600, fontSize: 15),
                           ),
                           Text(
-                            '12:00 AM',
+                            mymessage != null
+                                ? homeController.getLastMessageDate(
+                                    context: context, time: mymessage!.sent)
+                                : '',
                             style: TextStyle(
                                 fontWeight: FontWeight.w400,
                                 fontSize: 11,
-                                color: Colors.green),
+                                color: mymessage != null &&
+                                        mymessage!.read.isEmpty &&
+                                        mymessage?.fromId !=
+                                            ac.loginuser.value?.id
+                                    ? Colors.green
+                                    : Colors.grey.shade600),
                           )
                         ],
                       ),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(
-                            homeController.message.value != null
-                                ? homeController.message.value?.msg
-                                : user.about,
-                            maxLines: 1,
-                            style: TextStyle(fontSize: 13),
-                          ),
-                          Container(
-                            height: 18,
-                            width: 18,
-                            decoration: BoxDecoration(
-                                color: Colors.green,
-                                borderRadius: BorderRadius.circular(20)),
-                            child: Center(
-                              child: Text(
-                                '2',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 11,
+                          mymessage != null && mymessage!.type == Type.image
+                              ? Row(
+                                  children: [
+                                    mymessage?.fromId == ac.loginuser.value?.id
+                                        ? Icon(
+                                            Icons.done_all,
+                                            size: 15,
+                                            color: mymessage != null &&
+                                                    mymessage!.read.isNotEmpty
+                                                ? Colors.blue
+                                                : Colors.grey.shade600,
+                                          )
+                                        : Container(),
+                                    Icon(
+                                      Icons.image,
+                                      size: 15,
+                                      color: Colors.grey.shade600,
+                                    ),
+                                    Text(
+                                      "Photo",
+                                      style: TextStyle(
+                                        color: Colors.grey.shade600,
+                                      ),
+                                    )
+                                  ],
+                                )
+                              : Row(
+                                  children: [
+                                    mymessage?.fromId == ac.loginuser.value?.id
+                                        ? Icon(
+                                            Icons.done_all,
+                                            size: 15,
+                                            color: mymessage != null &&
+                                                    mymessage!
+                                                        .read.isNotEmpty &&
+                                                    mymessage?.fromId ==
+                                                        ac.loginuser.value?.id
+                                                ? Colors.blue
+                                                : Colors.grey.shade600,
+                                          )
+                                        : Container(),
+                                    Text(
+                                      mymessage != null
+                                          ? mymessage1
+                                          : user.about,
+                                      maxLines: 1,
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        color: Colors.grey.shade600,
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                              ),
-                            ),
-                          )
+                          mymessage != null &&
+                                  mymessage!.read.isEmpty &&
+                                  mymessage?.fromId != ac.loginuser.value?.id
+                              ? Container(
+                                  height: 18,
+                                  width: 18,
+                                  decoration: BoxDecoration(
+                                      color: Colors.green,
+                                      borderRadius: BorderRadius.circular(20)),
+                                  child: Center(
+                                    child: Text(
+                                      '1',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 11,
+                                      ),
+                                    ),
+                                  ),
+                                )
+                              : Container()
                         ],
-                      ),
+                      )
                     ],
                   ),
                 ))
               ],
+            );
+          }),
+    );
+  }
+}
+
+class Group_listTile extends StatelessWidget {
+  final Group group;
+  const Group_listTile({super.key, required this.group});
+
+  @override
+  Widget build(BuildContext context) {
+    final homeController = Get.find<HomeController>();
+    //final ac = Get.find<AuthController>();
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 15),
+      child: Row(
+        children: [
+          CircleAvatar(
+            backgroundImage: NetworkImage(group.groupImage),
+            radius: 22,
+          ),
+          SizedBox(width: 15),
+          Expanded(
+              child: InkWell(
+            onTap: () {
+              homeController.isGroupChat.value = true;
+              Get.to(() => GroupChatScreen(mygroup: group));
+            },
+            child: Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      "${group.groupName}",
+                      style:
+                          TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
+                    ),
+                    Text(
+                      'time',
+                      style: TextStyle(
+                          fontWeight: FontWeight.w400,
+                          fontSize: 11,
+                          color: Colors.green),
+                    )
+                  ],
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      "last message",
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Colors.grey.shade600,
+                      ),
+                    ),
+                    Container(
+                      height: 18,
+                      width: 18,
+                      decoration: BoxDecoration(
+                          color: Colors.green,
+                          borderRadius: BorderRadius.circular(20)),
+                      child: Center(
+                        child: Text(
+                          '1',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 11,
+                          ),
+                        ),
+                      ),
+                    )
+                  ],
+                ),
+              ],
             ),
-          );
-        }),
-  );
+          ))
+        ],
+      ),
+    );
+  }
 }
 
 Widget status_listTile() {

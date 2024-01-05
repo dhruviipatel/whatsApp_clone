@@ -15,7 +15,7 @@ class ProfileScreen extends StatelessWidget {
         TextEditingController(text: ac.loginuser.value!.name);
     TextEditingController aboutController =
         TextEditingController(text: ac.loginuser.value!.about);
-    TextEditingController imageController = TextEditingController();
+
     TextEditingController phoneController =
         TextEditingController(text: ac.loginuser.value!.phone);
     return Obx(
@@ -70,9 +70,8 @@ class ProfileScreen extends StatelessWidget {
                   children: [
                     InkWell(
                       onTap: () async {
-                        print(imageController.text);
-                        ac.profileimagepath.value = await ac.chooseImage();
-                        print(imageController.text);
+                        ac.profileimagepath.value =
+                            await ac.chooseImageFromGallery();
                       },
                       child: Stack(
                         alignment: Alignment.center,

@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:whatsapp_clone/controllers/authController.dart';
 import 'package:whatsapp_clone/controllers/homeController.dart';
 import 'package:whatsapp_clone/models/chatuserModel.dart';
 import 'package:whatsapp_clone/models/messageModel.dart';
@@ -17,7 +18,7 @@ class ChatScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final homeController = Get.find<HomeController>();
-
+    final ac = Get.find<AuthController>();
     TextEditingController messageController = TextEditingController();
     return Obx(
       () => WillPopScope(
@@ -45,24 +46,62 @@ class ChatScreen extends StatelessWidget {
                 child: Icon(
                     Platform.isIOS ? Icons.arrow_back_ios : Icons.arrow_back)),
             iconTheme: IconThemeData(color: Colors.white),
-            title: Row(
-              children: [
-                Container(
-                  height: 35,
-                  width: 35,
-                  decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(35),
-                      image: DecorationImage(
-                          image: NetworkImage(mychatuser.image),
-                          fit: BoxFit.cover)),
-                ),
-                SizedBox(width: 10),
-                Text(
-                  mychatuser.name,
-                  style: TextStyle(color: Colors.white, fontSize: 18),
-                ),
-              ],
-            ),
+            title: StreamBuilder(
+                stream: homeController.getSpecificUser(mychatuser),
+                builder: (context, snapshot) {
+                  var data = snapshot.data?.docs;
+
+                  final list =
+                      data?.map((e) => Chatuser.fromJson(e.data())).toList() ??
+                          [];
+
+                  return Row(
+                    children: [
+                      Container(
+                        height: 35,
+                        width: 35,
+                        decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(35),
+                            image: DecorationImage(
+                                image: NetworkImage(list.isNotEmpty
+                                    ? list[0].image
+                                    : mychatuser.image),
+                                fit: BoxFit.cover)),
+                      ),
+                      SizedBox(width: 10),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            mychatuser.id == ac.loginuser.value?.id
+                                ? 'Me (You)'
+                                : list.isNotEmpty
+                                    ? list[0].name
+                                    : mychatuser.name,
+                            style: TextStyle(color: Colors.white, fontSize: 18),
+                          ),
+                          Text(
+                            mychatuser.id == ac.loginuser.value?.id
+                                ? 'Message yourself'
+                                : list.isNotEmpty
+                                    ? list[0].isOnline
+                                        ? 'Online'
+                                        : homeController.getFormattedLastSeen(
+                                            context: context,
+                                            lastActive: list[0].lastActive)
+                                    : homeController.getFormattedLastSeen(
+                                        context: context,
+                                        lastActive: mychatuser.lastActive,
+                                      ),
+
+                            //
+                            style: TextStyle(fontSize: 12, color: Colors.white),
+                          )
+                        ],
+                      ),
+                    ],
+                  );
+                }),
             centerTitle: false,
             actions: [
               IconButton(onPressed: () {}, icon: Icon(Icons.video_call)),
@@ -104,9 +143,12 @@ class ChatScreen extends StatelessWidget {
                                     itemBuilder: (context, index) {
                                       final reversedIndex =
                                           msglist.length - 1 - index;
-                                      return chatcard(
-                                          msglist[reversedIndex], context);
-                                      //return chatcard(msglist[index], context);
+                                      return msglist[reversedIndex].fromId ==
+                                              ac.loginuser.value?.id
+                                          ? chatcard(
+                                              msglist[reversedIndex], context)
+                                          : oppChatCard(
+                                              msglist[reversedIndex], context);
                                     });
                               } else {
                                 return Center(
@@ -115,7 +157,8 @@ class ChatScreen extends StatelessWidget {
                               }
                           }
                         })),
-                chatInput(messageController, mychatuser, context),
+                chatInput(messageController, context, 'chat',
+                    oppositeUser: mychatuser),
 
                 //emoji picker
                 if (homeController.showEmoji.value)

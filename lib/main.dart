@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:whatsapp_clone/controllers/homeController.dart';
 import 'package:whatsapp_clone/screens/splash_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:whatsapp_clone/utils/themes.dart';
@@ -38,12 +39,16 @@ class DismissKeyboard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final homeController = Get.put(HomeController());
     return GestureDetector(
       onTap: () {
         FocusScopeNode currentFocus = FocusScope.of(context);
         if (!currentFocus.hasPrimaryFocus &&
             currentFocus.focusedChild != null) {
           FocusManager.instance.primaryFocus?.unfocus();
+        }
+        if (homeController.showEmoji.value) {
+          homeController.showEmoji.value = !homeController.showEmoji.value;
         }
       },
       child: child,

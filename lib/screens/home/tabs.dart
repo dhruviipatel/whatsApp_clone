@@ -1,53 +1,104 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:get/get.dart';
 import 'package:whatsapp_clone/controllers/authController.dart';
+import 'package:whatsapp_clone/controllers/homeController.dart';
 import 'package:whatsapp_clone/models/chatuserModel.dart';
+import 'package:whatsapp_clone/models/groupModel.dart';
 import 'package:whatsapp_clone/screens/home/home_widgets.dart';
 import 'package:whatsapp_clone/utils/colors.dart';
 
 Widget chatTab() {
   final ac = Get.find<AuthController>();
-  return StreamBuilder(
-      stream: ac.firestore
-          .collection('users')
-          .where('id', isNotEqualTo: ac.loginuser.value?.id)
-          .snapshots(),
-      builder: (context, snapshot) {
-        switch (snapshot.connectionState) {
-          //if data is loading
-          case ConnectionState.waiting:
-          case ConnectionState.none:
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
-          //if data is loaded and show it
-          case ConnectionState.active:
-          case ConnectionState.done:
-            List<Chatuser> list = [];
+  final homeController = Get.find<HomeController>();
+  return CustomScrollView(
+    slivers: [
+      SliverToBoxAdapter(
+        child: StreamBuilder(
+          stream: homeController.getHomeChatUsers(),
+          builder: (context, snapshot) {
+            switch (snapshot.connectionState) {
+              case ConnectionState.waiting:
+              case ConnectionState.none:
+                return Center(
+                  child: Text("data loading"),
+                );
+              case ConnectionState.active:
+              case ConnectionState.done:
+                List<Chatuser> list = [];
 
-            var data = snapshot.data?.docs;
-            list = data?.map((e) => Chatuser.fromJson(e.data())).toList() ?? [];
+                var data = snapshot.data?.docs;
+                list = data?.map((e) => Chatuser.fromJson(e.data())).toList() ??
+                    [];
 
-            if (list.isNotEmpty) {
-              return CustomScrollView(
-                slivers: [
-                  SliverList(
-                    delegate: SliverChildBuilderDelegate(
-                      (BuildContext context, int index) {
-                        return Home_listTile(user: list[index]);
-                      },
-                      childCount: list.length,
-                    ),
-                  ),
-                ],
-              );
-            } else {
-              return Center(
-                child: Text("No contact to chat"),
-              );
+                if (list.isNotEmpty) {
+                  return Column(
+                    children: [
+                      for (var user in list)
+                        Slidable(
+                          startActionPane: ActionPane(
+                              extentRatio: 0.3,
+                              motion: ScrollMotion(),
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.only(left: 20),
+                                  child: IconButton(
+                                      onPressed: () {
+                                        homeController
+                                            .deleteHomeChatUsers(user);
+                                      },
+                                      icon: Icon(Icons.delete)),
+                                )
+                              ]),
+                          child: Home_listTile(
+                            user: user,
+                          ),
+                        ),
+                    ],
+                  );
+                } else {
+                  return Center(
+                    child: Container(),
+                  );
+                }
             }
-        }
-      });
+          },
+        ),
+      ),
+      SliverToBoxAdapter(
+        child: StreamBuilder(
+          stream: ac.firestore.collection('groups').snapshots(),
+          builder: (context, snapshot) {
+            switch (snapshot.connectionState) {
+              case ConnectionState.waiting:
+              case ConnectionState.none:
+                return Center(
+                  child: Text("data loading"),
+                );
+              case ConnectionState.active:
+              case ConnectionState.done:
+                List list = [];
+
+                var data = snapshot.data?.docs;
+                print(data);
+                list =
+                    data?.map((e) => Group.fromJson(e.data())).toList() ?? [];
+
+                if (list.isNotEmpty) {
+                  return Column(
+                    children: [
+                      for (var grp in list) Group_listTile(group: grp)
+                    ],
+                  );
+                } else {
+                  return Container();
+                }
+            }
+          },
+        ),
+      ),
+    ],
+  );
 }
 
 Widget statusTab() {

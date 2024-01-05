@@ -1,5 +1,8 @@
+import 'dart:developer';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:whatsapp_clone/screens/contact/select_contact_screen.dart';
 import 'package:whatsapp_clone/screens/home/home_widgets.dart';
 import 'package:whatsapp_clone/screens/home/tabs.dart';
 import 'package:whatsapp_clone/utils/colors.dart';
@@ -18,12 +21,27 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   late TabController tabController;
   @override
   void initState() {
+    //set user update status active when start app
+    controller.updateOnlineStatus(true);
+
+    SystemChannels.lifecycle.setMessageHandler((message) {
+      log('message : $message');
+      if (message.toString().contains('pause'))
+        controller.updateOnlineStatus(false);
+      if (message.toString().contains('resumed'))
+        controller.updateOnlineStatus(true);
+      return Future.value(message);
+    });
+
     tabController = TabController(length: 3, vsync: this);
     tabController.addListener(() {
       controller.changeTabIndex(tabController.index);
       print(controller.tabIndex);
     });
     super.initState();
+    //}
+
+    //set its active status when we open close apps dynamically
   }
 
   @override
@@ -33,7 +51,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         floatingActionButton: controller.tabIndex.value == 0
             ? FloatingActionButton(
                 backgroundColor: tealDarkGreenColor,
-                onPressed: () {},
+                onPressed: () {
+                  Get.to(() => SelectContactScareen());
+                },
                 child: Icon(Icons.message, color: Colors.white),
               )
             : controller.tabIndex.value == 1

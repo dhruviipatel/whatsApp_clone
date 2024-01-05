@@ -14,18 +14,19 @@ class Chatuser {
   String about;
   String lastActive;
   String name;
+  List<String>? groups;
 
-  Chatuser({
-    required this.isOnline,
-    required this.id,
-    required this.createdAt,
-    required this.pushToken,
-    required this.image,
-    required this.phone,
-    required this.about,
-    required this.lastActive,
-    required this.name,
-  });
+  Chatuser(
+      {required this.isOnline,
+      required this.id,
+      required this.createdAt,
+      required this.pushToken,
+      required this.image,
+      required this.phone,
+      required this.about,
+      required this.lastActive,
+      required this.name,
+      this.groups});
 
   factory Chatuser.fromJson(Map<String, dynamic> json) => Chatuser(
         isOnline: json["is_online"],
@@ -37,6 +38,9 @@ class Chatuser {
         about: json["about"],
         lastActive: json["last_active"],
         name: json["name"],
+        groups: json["groups"] != null
+            ? List<String>.from(json["groups"].map((x) => x))
+            : null,
       );
 
   Map<String, dynamic> toJson() => {
@@ -49,5 +53,7 @@ class Chatuser {
         "about": about,
         "last_active": lastActive,
         "name": name,
+        "groups":
+            groups != null ? List<dynamic>.from(groups!.map((x) => x)) : null,
       };
 }

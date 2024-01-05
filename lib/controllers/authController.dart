@@ -9,6 +9,7 @@ import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:whatsapp_clone/controllers/homeController.dart';
 import 'package:whatsapp_clone/models/chatuserModel.dart';
 import 'package:whatsapp_clone/models/countryModel.dart';
 import 'package:whatsapp_clone/screens/home/home_screen.dart';
@@ -19,11 +20,6 @@ import 'package:whatsapp_clone/utils/url.dart';
 import 'package:image/image.dart' as img;
 
 class AuthController extends GetxController {
-  @override
-  void onInit() {
-    super.onInit();
-  }
-
   FirebaseAuth auth = FirebaseAuth.instance;
 
   FirebaseFirestore firestore = FirebaseFirestore.instance;
@@ -43,6 +39,8 @@ class AuthController extends GetxController {
   RxBool hasInternet = true.obs;
   RxBool isSearching = false.obs;
 
+  //final homeController = Get.put(HomeController());
+
   //check if user login or not
   void checkUserLoginStatus() async {
     try {
@@ -51,8 +49,7 @@ class AuthController extends GetxController {
       if (user != null) {
         // User is already logged in
         hasInternet.value = true;
-        getDataFromFireStore();
-        Get.offAll(() => HomeScreen());
+        getDataFromFireStore().then((value) => Get.offAll(() => HomeScreen()));
       } else {
         // User is not logged in
         hasInternet.value = true;
@@ -106,7 +103,7 @@ class AuthController extends GetxController {
   }
 
   //choose image for profile
-  chooseImage() async {
+  chooseImageFromGallery() async {
     var myImage = await ImagePicker().pickImage(source: ImageSource.gallery);
 
     if (myImage == null) {
@@ -117,7 +114,10 @@ class AuthController extends GetxController {
 
   //user logout
   logout(context) async {
+    final hc = Get.find<HomeController>();
+    hc.updateOnlineStatus(false);
     await auth.signOut();
+    loginuser.value = null;
   }
 
   //verify phone number
@@ -196,9 +196,13 @@ class AuthController extends GetxController {
           about: snapshot["about"],
           lastActive: snapshot["last_active"],
           name: snapshot["name"],
+          groups: (snapshot["groups"] as List<dynamic>?)
+              ?.map((group) => group.toString())
+              .toList(),
         );
 
         print(loginuser);
+        return true;
       },
     );
   }
@@ -263,15 +267,17 @@ class AuthController extends GetxController {
         print(value);
         var time = DateTime.now().millisecondsSinceEpoch.toString();
         final Chatuser chatuser = Chatuser(
-            isOnline: false,
-            id: auth.currentUser!.phoneNumber.toString(),
-            createdAt: time.toString(),
-            pushToken: '',
-            image: value,
-            phone: auth.currentUser!.phoneNumber.toString(),
-            about: 'Hey there,I am using WhatsApp ',
-            lastActive: time.toString(),
-            name: name);
+          isOnline: false,
+          id: auth.currentUser!.phoneNumber.toString(),
+          createdAt: time.toString(),
+          pushToken: '',
+          image: value,
+          phone: auth.currentUser!.phoneNumber.toString(),
+          about: 'Hey there,I am using WhatsApp ',
+          lastActive: time.toString(),
+          name: name,
+          groups: [],
+        );
         loginuser.value = chatuser;
 
         firestore
