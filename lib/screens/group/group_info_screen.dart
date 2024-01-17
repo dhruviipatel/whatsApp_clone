@@ -165,14 +165,14 @@ class AddGroupInfoScreen extends StatelessWidget {
           backgroundColor: tealDarkGreenColor,
           onPressed: () async {
             if (homeController.groupImage.value == '') {
-              await ac.assetImageToFile('assets/images/emptyUser.jpg').then(
-                  (myfile) => homeController.createGroup(
-                      homeController.selectedMemberList,
-                      nameController.text,
-                      myfile));
+              await ac.assetImageToFile('assets/images/groupIcon.png').then(
+                  (myfile) => homeController.getfinalMembers().then(
+                      (finalList) => homeController.createGroup(
+                          finalList, nameController.text, myfile)));
             } else {
-              homeController.createGroup(homeController.selectedMemberList,
-                  nameController.text, File(homeController.groupImage.value));
+              homeController.getfinalMembers().then((finalList) =>
+                  homeController.createGroup(finalList, nameController.text,
+                      File(homeController.groupImage.value)));
             }
           },
           child: Icon(

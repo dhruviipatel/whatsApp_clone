@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:whatsapp_clone/controllers/homeController.dart';
 import 'package:whatsapp_clone/models/chatuserModel.dart';
+import 'package:whatsapp_clone/models/groupMessageModel.dart';
+import 'package:whatsapp_clone/models/groupModel.dart';
 import 'package:whatsapp_clone/models/messageModel.dart';
+import 'package:whatsapp_clone/screens/group/group_description_screen.dart';
 import 'package:whatsapp_clone/screens/profile/oppProfile_screen.dart';
 import 'package:whatsapp_clone/utils/colors.dart';
 
@@ -111,6 +114,70 @@ class ProfileDialog extends StatelessWidget {
   }
 }
 
+class GroupProfileDialog extends StatelessWidget {
+  final Group group;
+  const GroupProfileDialog({super.key, required this.group});
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      contentPadding: EdgeInsets.zero,
+      backgroundColor: Colors.white,
+      shape: RoundedRectangleBorder(),
+      content: SizedBox(
+        height: MediaQuery.of(context).size.height * .35,
+        width: MediaQuery.of(context).size.height * .6,
+        child: Stack(
+          children: [
+            Column(
+              children: [
+                Expanded(
+                    child: Container(
+                        child: Image.network(
+                  group.groupImage,
+                  fit: BoxFit.cover,
+                ))),
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 10),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      Icon(Icons.message, color: tealGreenColor),
+                      Icon(Icons.call, color: tealGreenColor),
+                      Icon(Icons.video_call, color: tealGreenColor),
+                      InkWell(
+                          onTap: () {
+                            Get.back();
+                            Get.to(() => GroupDescScreen(group: group));
+                          },
+                          child: Icon(Icons.info_outline_rounded,
+                              color: tealGreenColor))
+                    ],
+                  ),
+                )
+              ],
+            ),
+            Container(
+              height: 40,
+              width: double.infinity,
+              decoration: BoxDecoration(color: Colors.black.withOpacity(0.4)),
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Text(
+                  group.groupName,
+                  textAlign: TextAlign.start,
+                  style: TextStyle(
+                      color: Colors.white, fontWeight: FontWeight.w500),
+                ),
+              ),
+            )
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 Widget oppDataContainer(icon, text, context) {
   return Container(
     height: MediaQuery.of(context).size.width / 5.5,
@@ -129,18 +196,28 @@ Widget oppDataContainer(icon, text, context) {
   );
 }
 
-Widget sharedImagesList(chatuser) {
+Widget sharedImagesList({chatuser, group, isgroup}) {
   final homeController = Get.find<HomeController>();
   return StreamBuilder(
-      stream: homeController.getAllMessages(chatuser),
+      stream: isgroup == true
+          ? homeController.getGroupMessages(group)
+          : homeController.getAllMessages(chatuser),
       builder: (context, snapshot) {
         var data = snapshot.data?.docs;
+        List imagelist = [];
+        if (isgroup == true) {
+          final list =
+              data?.map((msg) => GroupMessage.fromJson(msg.data())).toList() ??
+                  [];
+          imagelist =
+              list.where((element) => element.type == MType.image).toList();
+        } else {
+          final list =
+              data?.map((msg) => Message.fromJson(msg.data())).toList() ?? [];
+          imagelist =
+              list.where((element) => element.type == Type.image).toList();
+        }
 
-        final list =
-            data?.map((msg) => Message.fromJson(msg.data())).toList() ?? [];
-        print(list);
-        final imagelist =
-            list.where((element) => element.type == Type.image).toList();
         if (imagelist.length == 0) {
           return Container();
         } else {

@@ -7,7 +7,11 @@ import 'package:whatsapp_clone/controllers/homeController.dart';
 import 'package:whatsapp_clone/models/groupMessageModel.dart';
 import 'package:whatsapp_clone/models/groupModel.dart';
 import 'package:whatsapp_clone/screens/chat/chat_widgets.dart';
+import 'package:whatsapp_clone/screens/group/group_description_screen.dart';
+import 'package:whatsapp_clone/screens/profile/profile_widgets.dart';
 import 'package:whatsapp_clone/utils/colors.dart';
+
+import '../../models/chatuserModel.dart';
 
 class GroupChatScreen extends StatelessWidget {
   final Group mygroup;
@@ -60,70 +64,103 @@ class GroupChatScreen extends StatelessWidget {
 
                         return Row(
                           children: [
-                            Container(
-                              height: 35,
-                              width: 35,
-                              decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(35),
-                                  image: DecorationImage(
-                                      image: NetworkImage(list.isNotEmpty
-                                          ? list[0].groupImage
-                                          : mygroup.groupImage),
-                                      fit: BoxFit.cover)),
+                            InkWell(
+                              onTap: () {
+                                showDialog(
+                                    context: context,
+                                    builder: (_) =>
+                                        GroupProfileDialog(group: mygroup));
+                              },
+                              child: Container(
+                                height: 35,
+                                width: 35,
+                                decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(35),
+                                    image: DecorationImage(
+                                        image: NetworkImage(list.isNotEmpty
+                                            ? list[0].groupImage
+                                            : mygroup.groupImage),
+                                        fit: BoxFit.cover)),
+                              ),
                             ),
                             SizedBox(width: 10),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  mygroup.groupId == ac.loginuser.value?.id
-                                      ? 'Me (You)'
-                                      : list.isNotEmpty
-                                          ? list[0].groupName
-                                          : mygroup.groupName,
-                                  style: TextStyle(
-                                      color: Colors.white, fontSize: 18),
-                                ),
-                                Container(
-                                    height: 20,
-                                    width:
-                                        MediaQuery.of(context).size.width / 2,
-                                    child: Row(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          "You, ",
-                                          style: TextStyle(
-                                              fontSize: 12,
-                                              color: Colors.white),
-                                        ),
-                                        Expanded(
-                                          child: ListView.builder(
-                                              physics:
-                                                  NeverScrollableScrollPhysics(),
-                                              itemCount: mygroup.members.length,
-                                              scrollDirection: Axis.horizontal,
-                                              itemBuilder: (context, index) {
-                                                return Text(
-                                                  mygroup.members[index].id ==
-                                                          ac.loginuser.value?.id
-                                                      ? ''
-                                                      : index ==
-                                                              mygroup.members
-                                                                      .length -
-                                                                  1
-                                                          ? '${mygroup.members[index].name}'
-                                                          : '${mygroup.members[index].name}, ',
-                                                  style: TextStyle(
-                                                      fontSize: 12,
-                                                      color: Colors.white),
-                                                );
-                                              }),
-                                        ),
-                                      ],
-                                    )),
-                              ],
+                            InkWell(
+                              onTap: () {
+                                Get.to(() => GroupDescScreen(group: mygroup));
+                              },
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    list.isNotEmpty
+                                        ? list[0].groupName
+                                        : mygroup.groupName,
+                                    style: TextStyle(
+                                        color: Colors.white, fontSize: 18),
+                                  ),
+                                  Container(
+                                      height: 20,
+                                      width:
+                                          MediaQuery.of(context).size.width / 2,
+                                      child: Row(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            "You, ",
+                                            style: TextStyle(
+                                                fontSize: 12,
+                                                color: Colors.white),
+                                          ),
+                                          Expanded(
+                                              child: Row(children: [
+                                            for (var i = 0;
+                                                i < mygroup.members.length;
+                                                i++)
+                                              StreamBuilder(
+                                                  stream: homeController
+                                                      .firestore
+                                                      .collection('users')
+                                                      .where('id',
+                                                          isEqualTo: mygroup
+                                                              .members[i])
+                                                      .snapshots(),
+                                                  builder: (context, snapshot) {
+                                                    var data =
+                                                        snapshot.data?.docs;
+                                                    final memberlist = data
+                                                            ?.map((e) => Chatuser
+                                                                .fromJson(
+                                                                    e.data()))
+                                                            .toList() ??
+                                                        [];
+
+                                                    if (memberlist.isNotEmpty) {
+                                                      if (memberlist[0] !=
+                                                          ac.loginuser.value) {
+                                                        return Text(
+                                                          memberlist[0].id ==
+                                                                  ac.loginuser
+                                                                      .value?.id
+                                                              ? ''
+                                                              : "${memberlist[0].name}, ",
+                                                          style: TextStyle(
+                                                              fontSize: 12,
+                                                              color:
+                                                                  Colors.white),
+                                                        );
+                                                      } else {
+                                                        return Text('');
+                                                      }
+                                                    }
+
+                                                    return Text('');
+                                                  })
+                                          ])),
+                                        ],
+                                      )),
+                                ],
+                              ),
                             ),
                           ],
                         );

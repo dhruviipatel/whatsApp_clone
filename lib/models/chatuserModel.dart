@@ -14,7 +14,6 @@ class Chatuser {
   String about;
   String lastActive;
   String name;
-  List<String>? groups;
 
   Chatuser(
       {required this.isOnline,
@@ -25,23 +24,18 @@ class Chatuser {
       required this.phone,
       required this.about,
       required this.lastActive,
-      required this.name,
-      this.groups});
+      required this.name});
 
   factory Chatuser.fromJson(Map<String, dynamic> json) => Chatuser(
-        isOnline: json["is_online"],
-        id: json["id"],
-        createdAt: json["created_at"],
-        pushToken: json["push_token"],
-        image: json["image"],
-        phone: json["phone"],
-        about: json["about"],
-        lastActive: json["last_active"],
-        name: json["name"],
-        groups: json["groups"] != null
-            ? List<String>.from(json["groups"].map((x) => x))
-            : null,
-      );
+      isOnline: json["is_online"],
+      id: json["id"],
+      createdAt: json["created_at"],
+      pushToken: json["push_token"],
+      image: json["image"],
+      phone: json["phone"],
+      about: json["about"],
+      lastActive: json["last_active"],
+      name: json["name"]);
 
   Map<String, dynamic> toJson() => {
         "is_online": isOnline,
@@ -52,8 +46,6 @@ class Chatuser {
         "phone": phone,
         "about": about,
         "last_active": lastActive,
-        "name": name,
-        "groups":
-            groups != null ? List<dynamic>.from(groups!.map((x) => x)) : null,
+        "name": name
       };
 }

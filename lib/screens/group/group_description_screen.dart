@@ -1,18 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:whatsapp_clone/controllers/homeController.dart';
+import 'package:whatsapp_clone/controllers/authController.dart';
 import 'package:whatsapp_clone/models/chatuserModel.dart';
-import 'package:whatsapp_clone/screens/chat/chat_screen.dart';
-import 'package:whatsapp_clone/screens/profile/profile_widgets.dart';
+import 'package:whatsapp_clone/models/groupModel.dart';
+import 'package:whatsapp_clone/screens/group/group_widgets.dart';
 import 'package:whatsapp_clone/utils/colors.dart';
 
-class OppProfileScreen extends StatelessWidget {
-  final Chatuser chatuser;
-  const OppProfileScreen({super.key, required this.chatuser});
+import '../../controllers/homeController.dart';
+import '../profile/profile_widgets.dart';
+
+class GroupDescScreen extends StatelessWidget {
+  final Group group;
+  const GroupDescScreen({super.key, required this.group});
 
   @override
   Widget build(BuildContext context) {
     final HomeController homeController = Get.find<HomeController>();
+    final AuthController ac = Get.find<AuthController>();
     return Obx(
       () => homeController.obxvalue == true
           ? Scaffold()
@@ -33,18 +37,18 @@ class OppProfileScreen extends StatelessWidget {
                         width: MediaQuery.of(context).size.width / 3,
                         decoration: BoxDecoration(
                             image: DecorationImage(
-                                image: NetworkImage(chatuser.image),
+                                image: NetworkImage(group.groupImage),
                                 fit: BoxFit.cover),
                             color: Colors.green,
                             borderRadius: BorderRadius.circular(
                                 MediaQuery.of(context).size.width / 3)),
                       ),
                       Text(
-                        chatuser.name,
+                        group.groupName,
                         style: TextStyle(fontSize: 20),
                       ),
                       Text(
-                        chatuser.phone,
+                        'Group member count',
                         style: TextStyle(
                             fontSize: 16, color: Colors.grey.shade700),
                       ),
@@ -53,29 +57,38 @@ class OppProfileScreen extends StatelessWidget {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            InkWell(
-                              onTap: () => Get.to(
-                                  () => ChatScreen(mychatuser: chatuser)),
-                              child: oppDataContainer(
-                                  Icons.message, "Message", context),
+                            Container(
+                              height: MediaQuery.of(context).size.width / 6,
+                              width: MediaQuery.of(context).size.width / 2.3,
+                              decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(
+                                      width: 0.5, color: Colors.grey.shade300)),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  Icon(Icons.message, color: tealGreenColor),
+                                  Text("Message",
+                                      style: TextStyle(fontSize: 13))
+                                ],
+                              ),
                             ),
-                            InkWell(
-                              onTap: () => Get.to(
-                                  () => ChatScreen(mychatuser: chatuser)),
-                              child: oppDataContainer(
-                                  Icons.call, "Audio", context),
-                            ),
-                            InkWell(
-                              onTap: () => Get.to(
-                                  () => ChatScreen(mychatuser: chatuser)),
-                              child: oppDataContainer(
-                                  Icons.video_call, "Video", context),
-                            ),
-                            InkWell(
-                              onTap: () => Get.to(
-                                  () => ChatScreen(mychatuser: chatuser)),
-                              child: oppDataContainer(
-                                  Icons.currency_rupee_rounded, "Pay", context),
+                            Container(
+                              height: MediaQuery.of(context).size.width / 6,
+                              width: MediaQuery.of(context).size.width / 2.3,
+                              decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(
+                                      width: 0.5, color: Colors.grey.shade300)),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  Icon(Icons.call, color: tealGreenColor),
+                                  Text("Audio", style: TextStyle(fontSize: 13))
+                                ],
+                              ),
                             ),
                           ],
                         ),
@@ -95,9 +108,7 @@ class OppProfileScreen extends StatelessWidget {
                         child: ListTile(
                           contentPadding: EdgeInsets.only(left: 15, right: 20),
                           visualDensity: VisualDensity.compact,
-                          title: Text(chatuser.about),
-                          subtitle: Text(homeController.getJoiningDate(
-                              context: context, date: chatuser.createdAt)),
+                          title: Text('About'),
                           titleTextStyle:
                               TextStyle(fontSize: 14, color: Colors.black),
                           subtitleTextStyle: TextStyle(
@@ -105,7 +116,7 @@ class OppProfileScreen extends StatelessWidget {
                         ),
                       ),
                       SizedBox(height: 5),
-                      sharedImagesList(chatuser: chatuser, isgroup: false),
+                      sharedImagesList(group: group, isgroup: true),
                       SizedBox(height: 5),
                       Card(
                         shape: RoundedRectangleBorder(),
@@ -161,6 +172,87 @@ class OppProfileScreen extends StatelessWidget {
                           ],
                         ),
                       ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              "${group.members.length} members",
+                              style: TextStyle(color: Colors.grey.shade700),
+                            ),
+                            Icon(Icons.search, color: Colors.grey.shade700)
+                          ],
+                        ),
+                      ),
+                      ListTile(
+                        visualDensity: VisualDensity.compact,
+                        leading: CircleAvatar(
+                          backgroundImage:
+                              NetworkImage(ac.loginuser.value!.image),
+                        ),
+                        title: Text("You"),
+                        subtitle: Text(
+                          '${ac.loginuser.value!.about}',
+                          style: TextStyle(color: Colors.grey.shade600),
+                        ),
+                      ),
+                      for (var i = 0; i < group.members.length; i++)
+                        StreamBuilder(
+                            stream: ac.firestore
+                                .collection('users')
+                                .where('id', isEqualTo: group.members[i])
+                                .snapshots(),
+                            builder: (context, snapshot) {
+                              if (snapshot.hasData) {
+                                var data = snapshot.data?.docs;
+                                final list = data
+                                        ?.map(
+                                            (e) => Chatuser.fromJson(e.data()))
+                                        .toList() ??
+                                    [];
+                                if (list.isNotEmpty) {
+                                  if (list[0].id == ac.loginuser.value?.id) {
+                                    return Container();
+                                  } else {
+                                    return ListTile(
+                                      visualDensity: VisualDensity.compact,
+                                      leading: InkWell(
+                                        onTap: () {
+                                          showDialog(
+                                              context: context,
+                                              builder: (context) =>
+                                                  ProfileDialog(
+                                                      chatuser: list[0]));
+                                        },
+                                        child: CircleAvatar(
+                                          backgroundImage:
+                                              NetworkImage(list[0].image),
+                                        ),
+                                      ),
+                                      title: InkWell(
+                                          onTap: () {
+                                            showDialog(
+                                                context: context,
+                                                builder: (context) =>
+                                                    MemberClickDialog(
+                                                      user: list[0],
+                                                    ));
+                                          },
+                                          child: Text("${list[0].name}")),
+                                      subtitle: Text(
+                                        '${list[0].about}',
+                                        style: TextStyle(
+                                            color: Colors.grey.shade600),
+                                      ),
+                                    );
+                                  }
+                                }
+                              }
+                              return ListTile(
+                                title: Text(""),
+                              );
+                            }),
                       SizedBox(height: 5),
                       Card(
                         shape: RoundedRectangleBorder(),
@@ -172,8 +264,8 @@ class OppProfileScreen extends StatelessWidget {
                               contentPadding:
                                   EdgeInsets.only(left: 15, right: 10),
                               visualDensity: VisualDensity.compact,
-                              leading: Icon(Icons.block, color: Colors.red),
-                              title: Text("Block ${chatuser.name}"),
+                              leading: Icon(Icons.logout, color: Colors.red),
+                              title: Text("Exit group"),
                               titleTextStyle: TextStyle(
                                   fontSize: 14,
                                   color: Colors.red,
@@ -185,7 +277,7 @@ class OppProfileScreen extends StatelessWidget {
                               visualDensity: VisualDensity.compact,
                               leading:
                                   Icon(Icons.thumb_down, color: Colors.red),
-                              title: Text("Report ${chatuser.name}"),
+                              title: Text("Report group"),
                               titleTextStyle: TextStyle(
                                   fontSize: 14,
                                   color: Colors.red,

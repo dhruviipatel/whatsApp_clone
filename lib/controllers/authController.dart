@@ -49,7 +49,8 @@ class AuthController extends GetxController {
       if (user != null) {
         // User is already logged in
         hasInternet.value = true;
-        getDataFromFireStore().then((value) => Get.offAll(() => HomeScreen()));
+        await getDataFromFireStore()
+            .then((value) => Get.offAll(() => HomeScreen()));
       } else {
         // User is not logged in
         hasInternet.value = true;
@@ -115,7 +116,7 @@ class AuthController extends GetxController {
   //user logout
   logout(context) async {
     final hc = Get.find<HomeController>();
-    hc.updateOnlineStatus(false);
+    await hc.updateOnlineStatus(false);
     await auth.signOut();
     loginuser.value = null;
   }
@@ -196,11 +197,9 @@ class AuthController extends GetxController {
           about: snapshot["about"],
           lastActive: snapshot["last_active"],
           name: snapshot["name"],
-          groups: (snapshot["groups"] as List<dynamic>?)
-              ?.map((group) => group.toString())
-              .toList(),
         );
-
+        final HomeController hc = Get.put(HomeController());
+        hc.updateOnlineStatus(true);
         print(loginuser);
         return true;
       },
@@ -234,7 +233,6 @@ class AuthController extends GetxController {
         print(value);
         addNewUserData(name, value);
       });
-      ;
     }
   }
 
@@ -254,7 +252,6 @@ class AuthController extends GetxController {
     File file = File('${(await getTemporaryDirectory()).path}/temp_image.jpg');
     await file.writeAsBytes(compressedBytes);
 
-    print(file);
     return file;
   }
 
@@ -276,7 +273,6 @@ class AuthController extends GetxController {
           about: 'Hey there,I am using WhatsApp ',
           lastActive: time.toString(),
           name: name,
-          groups: [],
         );
         loginuser.value = chatuser;
 

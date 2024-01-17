@@ -290,7 +290,7 @@ class HomeController extends GetxController {
     if (joinedDate.month == now.month || joinedDate.year == now.year) {
       return '${getMonth(joinedDate)} ${joinedDate.day}';
     }
-    return '${joinedDate.month} ${joinedDate.day}, ${joinedDate.year}';
+    return '${getMonth(joinedDate)} ${joinedDate.day}, ${joinedDate.year}';
   }
 
   Stream<QuerySnapshot<Map<String, dynamic>>> getHomeChatUsers() {
@@ -329,6 +329,15 @@ class HomeController extends GetxController {
     print(index);
   }
 
+  Future getfinalMembers() async {
+    List<String> mylist = [];
+    for (var i = 0; i < selectedMemberList.length; i++) {
+      mylist.add(selectedMemberList[i].id);
+    }
+
+    return await mylist;
+  }
+
   List<Map<String, dynamic>> convertChatusersToMapList(
       List<Chatuser> chatusers) {
     List<Map<String, dynamic>> chatuserMapList = [];
@@ -353,11 +362,10 @@ class HomeController extends GetxController {
   }
 
   //create new group
-  createGroup(List<Chatuser> chatusers, groupName, File file) async {
+  createGroup(List chatusers, groupName, File file) async {
     try {
       String currentTime = DateTime.now().millisecondsSinceEpoch.toString();
-      List<Map<String, dynamic>> chatuserMapList =
-          convertChatusersToMapList(chatusers);
+
       String groupId = '${groupName}' + currentTime;
       await ac
           .storeFileToStorage('gropup_Profile_Images/${groupId}', file)
@@ -369,7 +377,7 @@ class HomeController extends GetxController {
           'groupId': groupId,
           'groupName': groupName,
           'groupImage': val,
-          'members': chatuserMapList,
+          'members': chatusers,
           'admins': adminlist
         });
 

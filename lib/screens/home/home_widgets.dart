@@ -263,9 +263,16 @@ class Group_listTile extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 15),
       child: Row(
         children: [
-          CircleAvatar(
-            backgroundImage: NetworkImage(group.groupImage),
-            radius: 22,
+          InkWell(
+            onTap: () {
+              showDialog(
+                  context: context,
+                  builder: (_) => GroupProfileDialog(group: group));
+            },
+            child: CircleAvatar(
+              backgroundImage: NetworkImage(group.groupImage),
+              radius: 22,
+            ),
           ),
           SizedBox(width: 15),
           Expanded(

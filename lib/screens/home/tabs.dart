@@ -77,17 +77,23 @@ Widget chatTab() {
                 );
               case ConnectionState.active:
               case ConnectionState.done:
-                List list = [];
+                List<Group> list = [];
 
                 var data = snapshot.data?.docs;
                 print(data);
                 list =
                     data?.map((e) => Group.fromJson(e.data())).toList() ?? [];
-
+                List<Group> mylist = [];
                 if (list.isNotEmpty) {
+                  for (var i = 0; i < list.length; i++) {
+                    print(list);
+                    if (list[i].members.contains(ac.loginuser.value?.id)) {
+                      mylist.add(list[i]);
+                    }
+                  }
                   return Column(
                     children: [
-                      for (var grp in list) Group_listTile(group: grp)
+                      for (var grp in mylist) Group_listTile(group: grp)
                     ],
                   );
                 } else {

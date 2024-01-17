@@ -1,7 +1,5 @@
 import 'dart:convert';
 
-import 'package:whatsapp_clone/models/chatuserModel.dart';
-
 Group groupFromJson(String str) => Group.fromJson(json.decode(str));
 
 String groupToJson(Group data) => json.encode(data.toJson());
@@ -11,7 +9,7 @@ class Group {
   String groupImage;
   String groupName;
   List<String> admins;
-  List<Chatuser> members;
+  List<String> members;
 
   Group({
     required this.groupId,
@@ -26,8 +24,7 @@ class Group {
         groupImage: json["groupImage"],
         groupName: json["groupName"],
         admins: List<String>.from(json["admins"].map((x) => x)),
-        members: List<Chatuser>.from(
-            json["members"].map((x) => Chatuser.fromJson(x))),
+        members: List<String>.from(json["members"].map((x) => x)),
       );
 
   Map<String, dynamic> toJson() => {
@@ -35,6 +32,6 @@ class Group {
         "groupImage": groupImage,
         "groupName": groupName,
         "admins": List<dynamic>.from(admins.map((x) => x)),
-        "members": List<dynamic>.from(members.map((x) => x.toJson())),
+        "members": List<dynamic>.from(members.map((x) => x)),
       };
 }

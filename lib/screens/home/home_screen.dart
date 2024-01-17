@@ -22,7 +22,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   @override
   void initState() {
     //set user update status active when start app
-    controller.updateOnlineStatus(true);
+    //controller.updateOnlineStatus(true);
 
     SystemChannels.lifecycle.setMessageHandler((message) {
       log('message : $message');
