@@ -292,7 +292,7 @@ class Group_listTile extends StatelessWidget {
                           TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
                     ),
                     Text(
-                      'time',
+                      '12:12 pm',
                       style: TextStyle(
                           fontWeight: FontWeight.w400,
                           fontSize: 11,
@@ -304,7 +304,7 @@ class Group_listTile extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      "last message",
+                      "Good Morning",
                       style: TextStyle(
                         fontSize: 13,
                         color: Colors.grey.shade600,

@@ -55,13 +55,3 @@ class DismissKeyboard extends StatelessWidget {
     );
   }
 }
-
-// mygroup.members[index].id ==
-                                                  //         ac.loginuser.value?.id
-                                                  //     ? ''
-                                                  //     : index ==
-                                                  //             mygroup.members
-                                                  //                     .length -
-                                                  //                 1
-                                                  //         ? '${mygroup.members[index].name}'
-                                                  //         : '${mygroup.members[index].name}, ',
